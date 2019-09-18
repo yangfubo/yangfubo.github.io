@@ -55,20 +55,23 @@
   };
 </script>
 
-  <meta name="description" content="JVM内存结构虚拟内存与JVM内存结构&amp;emsp;在我们学习c语言/操作系统的时候，知道进程的内存结构有代码段，数据段[初始化数据段（初始化的全局和静态变量），未初始化数据段(又称bbs，未初始化的全局变量和静态变量)]，堆，共享库，栈，内核空间。详细了解可以搜索虚拟内存相关知识。  &amp;emsp;虚拟机的内存结构与进程的虚拟内存结构类似，那么Java虚拟机是怎么抽象它的内存结构的呢？根据Java虚">
+  <meta name="description" content="虚拟内存与JVM内存结构&amp;emsp;在我们学习c语言/操作系统的时候，知道进程的内存结构有代码段，数据段[初始化数据段（初始化的全局和静态变量），未初始化数据段(又称bbs，未初始化的全局变量和静态变量)]，堆，共享库，栈，内核空间。详细了解可以搜索虚拟内存相关知识。   图1.虚拟内存结构   &amp;emsp;虚拟机的内存结构与进程的虚拟内存结构类似，那么Java虚拟机是怎么抽象它的内存结构的呢？根">
 <meta property="og:type" content="article">
-<meta property="og:title" content="jvm内存结构">
-<meta property="og:url" content="http://yoursite.com/2019/09/17/jvm内存结构/index.html">
+<meta property="og:title" content="JVM内存结构">
+<meta property="og:url" content="http://yangfubo.github.io/2019/09/17/jvm内存结构/index.html">
 <meta property="og:site_name" content="Bob&#39;s Blogs">
-<meta property="og:description" content="JVM内存结构虚拟内存与JVM内存结构&amp;emsp;在我们学习c语言/操作系统的时候，知道进程的内存结构有代码段，数据段[初始化数据段（初始化的全局和静态变量），未初始化数据段(又称bbs，未初始化的全局变量和静态变量)]，堆，共享库，栈，内核空间。详细了解可以搜索虚拟内存相关知识。  &amp;emsp;虚拟机的内存结构与进程的虚拟内存结构类似，那么Java虚拟机是怎么抽象它的内存结构的呢？根据Java虚">
+<meta property="og:description" content="虚拟内存与JVM内存结构&amp;emsp;在我们学习c语言/操作系统的时候，知道进程的内存结构有代码段，数据段[初始化数据段（初始化的全局和静态变量），未初始化数据段(又称bbs，未初始化的全局变量和静态变量)]，堆，共享库，栈，内核空间。详细了解可以搜索虚拟内存相关知识。   图1.虚拟内存结构   &amp;emsp;虚拟机的内存结构与进程的虚拟内存结构类似，那么Java虚拟机是怎么抽象它的内存结构的呢？根">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="https://github.com/yangfubo/yangfubo.github.io/blob/dev/images/java%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%842.png?raw=true">
-<meta property="og:updated_time" content="2019-09-17T10:05:14.499Z">
+<meta property="og:image" content="https://raw.githubusercontent.com/yangfubo/yangfubo.github.io/dev/images/%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84/%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84.png">
+<meta property="og:image" content="http://yangfubo.github.io/2019/09/17/jvm内存结构/%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/yangfubo/yangfubo.github.io/dev/images/%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84/java%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%842.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/yangfubo/yangfubo.github.io/dev/images/%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84/%E5%A0%86%E5%86%85%E5%AD%98.jpg">
+<meta property="og:updated_time" content="2019-09-18T11:17:05.641Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="jvm内存结构">
-<meta name="twitter:description" content="JVM内存结构虚拟内存与JVM内存结构&amp;emsp;在我们学习c语言/操作系统的时候，知道进程的内存结构有代码段，数据段[初始化数据段（初始化的全局和静态变量），未初始化数据段(又称bbs，未初始化的全局变量和静态变量)]，堆，共享库，栈，内核空间。详细了解可以搜索虚拟内存相关知识。  &amp;emsp;虚拟机的内存结构与进程的虚拟内存结构类似，那么Java虚拟机是怎么抽象它的内存结构的呢？根据Java虚">
-<meta name="twitter:image" content="https://github.com/yangfubo/yangfubo.github.io/blob/dev/images/java%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%842.png?raw=true">
-  <link rel="canonical" href="http://yoursite.com/2019/09/17/jvm内存结构/">
+<meta name="twitter:title" content="JVM内存结构">
+<meta name="twitter:description" content="虚拟内存与JVM内存结构&amp;emsp;在我们学习c语言/操作系统的时候，知道进程的内存结构有代码段，数据段[初始化数据段（初始化的全局和静态变量），未初始化数据段(又称bbs，未初始化的全局变量和静态变量)]，堆，共享库，栈，内核空间。详细了解可以搜索虚拟内存相关知识。   图1.虚拟内存结构   &amp;emsp;虚拟机的内存结构与进程的虚拟内存结构类似，那么Java虚拟机是怎么抽象它的内存结构的呢？根">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/yangfubo/yangfubo.github.io/dev/images/%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84/%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84.png">
+  <link rel="canonical" href="http://yangfubo.github.io/2019/09/17/jvm内存结构/">
 
 
 <script id="page-configurations">
@@ -82,7 +85,7 @@
   };
 </script>
 
-  <title>jvm内存结构 | Bob's Blogs</title>
+  <title>JVM内存结构 | Bob's Blogs</title>
   
 
 
@@ -199,7 +202,7 @@
   
   
   <div class="post-block post">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/17/jvm内存结构/">
+    <link itemprop="mainEntityOfPage" href="http://yangfubo.github.io/2019/09/17/jvm内存结构/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Bob">
@@ -211,7 +214,7 @@
       <meta itemprop="name" content="Bob's Blogs">
     </span>
       <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">jvm内存结构
+        <h1 class="post-title" itemprop="name headline">JVM内存结构
 
           
         </h1>
@@ -227,11 +230,19 @@
                 
               
 
-              <time title="创建时间：2019-09-17 09:53:58 / 修改时间：18:05:14" itemprop="dateCreated datePublished" datetime="2019-09-17T09:53:58+08:00">2019-09-17</time>
+              <time title="创建时间：2019-09-17 09:53:58" itemprop="dateCreated datePublished" datetime="2019-09-17T09:53:58+08:00">2019-09-17</time>
             </span>
           
             
 
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-09-18 19:17:05" itemprop="dateModified" datetime="2019-09-18T19:17:05+08:00">2019-09-18</time>
+              </span>
             
           
             <span class="post-meta-item">
@@ -259,8 +270,15 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h2 id="JVM内存结构"><a href="#JVM内存结构" class="headerlink" title="JVM内存结构"></a>JVM内存结构</h2><h3 id="虚拟内存与JVM内存结构"><a href="#虚拟内存与JVM内存结构" class="headerlink" title="虚拟内存与JVM内存结构"></a>虚拟内存与JVM内存结构</h3><p>&emsp;在我们学习c语言/操作系统的时候，知道进程的内存结构有代码段，数据段[初始化数据段（初始化的全局和静态变量），未初始化数据段(又称bbs，未初始化的全局变量和静态变量)]，堆，共享库，栈，内核空间。详细了解可以搜索虚拟内存相关知识。 </p>
-<p>&emsp;虚拟机的内存结构与进程的虚拟内存结构类似，那么Java虚拟机是怎么抽象它的内存结构的呢？根据Java虚拟机规范，JVM所管理的内存包含以下几个运行时区域。可以按线程隔离和共享来分类。共享的有堆、方法区，线程隔离的有PC程序计数器、虚拟机栈、本地方法栈。如下图所示：<br><img src="https://github.com/yangfubo/yangfubo.github.io/blob/dev/images/java%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%842.png?raw=true" alt></p>
+        <h3 id="虚拟内存与JVM内存结构"><a href="#虚拟内存与JVM内存结构" class="headerlink" title="虚拟内存与JVM内存结构"></a>虚拟内存与JVM内存结构</h3><p>&emsp;在我们学习c语言/操作系统的时候，知道进程的内存结构有代码段，数据段[初始化数据段（初始化的全局和静态变量），未初始化数据段(又称bbs，未初始化的全局变量和静态变量)]，堆，共享库，栈，内核空间。详细了解可以搜索虚拟内存相关知识。 </p>
+<p><img src="https://raw.githubusercontent.com/yangfubo/yangfubo.github.io/dev/images/%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84/%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84.png" alt="虚拟内存结构" title="虚拟内存结构"></p>
+<center>图1.虚拟内存结构</center>
+
+<p><img src="//yangfubo.github.io/2019/09/17/jvm内存结构/%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84.png" alt></p>
+<p>&emsp;虚拟机的内存结构与进程的虚拟内存结构类似，那么Java虚拟机是怎么抽象它的内存结构的呢？根据Java虚拟机规范，JVM所管理的内存包含以下几个运行时区域。可以按线程隔离和共享来分类。共享的有堆、方法区，线程隔离的有PC程序计数器、虚拟机栈、本地方法栈。如下图所示：</p>
+<p><img src="https://raw.githubusercontent.com/yangfubo/yangfubo.github.io/dev/images/%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84/java%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%842.png" alt="虚拟机内存结构概览" title="虚拟机内存结构概览"></p>
+<center>图2.JVM内存结构概览</center>
+
 <h3 id="程序计数器"><a href="#程序计数器" class="headerlink" title="程序计数器"></a>程序计数器</h3><p>&emsp;CPU的寄存器中有一个指令寄存器IP(也称为程序计数器PC),存放指令在内存中的地址。JVM内存结构中的PC可以理解为是CPU中的PC的抽象，指向的是内存中字节码指令的地址（可以简单理解为字节码指令的行号）。因为在多核CPU中，每个核跑一个线程，所以Java程序的多个线程可以同时运行，所以每个线程就需要各自的PC。如果是线程执行的是一个Java方法，那么PC记录的是指令的地址。如果是Native方法，则这个PC的值为空。</p>
 <h3 id="Java虚拟机栈"><a href="#Java虚拟机栈" class="headerlink" title="Java虚拟机栈"></a>Java虚拟机栈</h3><p>&emsp;同样的Java的虚拟机栈也可以理解为虚拟内存中栈的抽象。也是线程私有的，它们功能都是一样的，存储的是方法执行的栈帧（Stack Fram）。方法的调用和返回代表的就是虚拟机栈的入栈和出栈操作。栈顶就是当前线程正在执行的方法的栈帧。栈帧中存储的就是方法执行需要的一些信息，如局部变量表、操作数栈、方法出口等。</p>
 <p>&emsp;局部变量表存放了编译器就知道了的各种基本数据类型（boolean,byte,char,short,int,float,long,double）、对象引用、returnAddress类型（指向一条字节码指令的地址）。可以把局部变量表理解为一个数组，其中long和double占用占用2个槽位（slot）,其余的都是占用1个槽位。32位虚拟机long和double用2个槽位存储数据，即使是64位的虚拟机，long和double也是2个槽位（1个槽位存储64位数据，另一个槽位为空）。</p>
@@ -276,9 +294,17 @@
 
 <h3 id="本地方法栈"><a href="#本地方法栈" class="headerlink" title="本地方法栈"></a>本地方法栈</h3><p>&emsp;这个栈与虚拟机栈结构类似，是Native方法执行时的栈帧。不同的虚拟机有不同的实现，但是Hotspot虚拟机是将两者合二为一的。</p>
 <h3 id="Java堆"><a href="#Java堆" class="headerlink" title="Java堆"></a>Java堆</h3><p>&emsp;在C中，堆是动态内存区域，由malloc()函数分配内存，Hotspot虚拟机是由C++实现的，那么内存分配可能是由new操作符。具体的可能要看虚拟机源码才能清楚，总之，先不管是由什么实现，先理解Java虚拟机的中的堆。Java堆可以说是虚拟机中最大的一块内存了，它的唯一目的就是存放实例对象的数据，通过new出的对象和数组一般都是放到堆中的。随着JIT编译器的发展和逃逸分析技术的成熟，<strong>栈上分配、标量替换</strong>优化技术使得不再完全是堆上分配。</p>
-<p>&emsp;Java堆是垃圾收集器管理的主要区域，这里有大量对象朝生夕死，也有老顽固存活下来。垃圾收集器现在基本上是<strong>分代收集算法</strong>，所以垃圾收集器把Java堆分为 年轻代{eden区、survivor区[survivor from(s0)、survicor to(s1)]}、老年代，可见上图内存结构总览。从内存分配角度来看，为了解决并发分配对象的效率，线程共享的堆中又各自有各自的<strong>TLAB分配缓冲区</strong>（Thread Local Allocation Buffer）。</p>
-<p>&emsp;Java堆内存大小由Xms初始大小,Xmx最大内存这两个参数控制。形成可扩展的堆内存。如果申请内存时不能再扩展了，就会抛出OutOfMemoryError异常。</p>
-<h3 id="方法区"><a href="#方法区" class="headerlink" title="方法区"></a>方法区</h3>
+<p>&emsp;Java堆是垃圾收集器管理的主要区域，这里有大量对象朝生夕死，也有老顽固存活下来。垃圾收集器现在基本上是<strong>分代收集算法</strong>，所以垃圾收集器把Java堆分为 年轻代{eden区、survivor区[survivor from(s0)、survicor to(s1)]}、老年代，可见上图内存结构总览。从内存分配角度来看，为了解决并发分配对象的效率，线程共享的堆中又各自有各自的<strong>TLAB分配缓冲区</strong>（Thread Local Allocation Buffer）使用-XX:+/-UseTLAB开启关闭（默认开启）。</p>
+<p>&emsp;Java堆内存大小由Xms初始大小（memory start）,Xmx最大内存(memory max)这两个参数控制。形成可扩展的堆内存。如果申请内存时不能再扩展了，就会抛出OutOfMemoryError异常。</p>
+<p><img src="https://raw.githubusercontent.com/yangfubo/yangfubo.github.io/dev/images/%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84/%E5%A0%86%E5%86%85%E5%AD%98.jpg" alt="堆内存分代结构" title="堆内存分代结构"></p>
+<center>图3.堆内存分代结构</center>
+
+<h3 id="方法区"><a href="#方法区" class="headerlink" title="方法区"></a>方法区</h3><p>&emsp;从名字就可以看出来，这个区域主要是存储方法的。class文件的字节码经过类加载后就进入了方法区变成class对象，所以方法区存储的是类的信息（方法、常量池、静态属性）、即时编译器JIT编译后的代码等数据。GC垃圾收集器在1.7及以前把该区域叫做永久代（和堆是逻辑上连续的），1.8后叫做元空间metaspace，使用Native Memory来分配空间，这样元空间的大小就由32/64位系统的虚拟内存可用大小决定，但也可用MaxMetaspaceSize参数限制。元空间是Hotspot对方法区的具体实现。并且JDK1.7及以后把在永久代的字符串常量池移到堆内存中了。</p>
+<h3 id="运行时常量池"><a href="#运行时常量池" class="headerlink" title="运行时常量池"></a>运行时常量池</h3><p>&emsp;Class文件除了类的版本、字段、方法、接口等信息外，还有一项信息是常量池（Constants Pool Table），用于存放编译期生成的各种<strong>字面量和符号引用</strong>，这部分内容将在类加载后进入方法区每个类的运行时常量池，当然也会把翻译出的直接引用存储在运行时常量池中。</p>
+<p>&emsp;扩展：比较了解 class文件常量池，运行时常量池，字符串常量池 与类加载过程的关系（待总结）</p>
+<h3 id="直接内存"><a href="#直接内存" class="headerlink" title="直接内存"></a>直接内存</h3><p>&emsp;直接内存并不是虚拟机运行时数据区的一部分，也不是Java虚拟机规范中定义的内存区域。但是这部分内存也被频繁的使用，而且也可能导致OOM异常出现。<br>在JDK1.4中新加入的NIO(New Input/Output)类，引入了一种基于通道channel的与缓冲区buffer的I/O方式，它可以使用Native函数库直接分配堆外内存，然后通过一个存储在Java堆中的DirectByteBuffer对象作为这块内存的引用进行操作。这样显著提升了性能，因为避免了在堆内存和Native堆中来回复制数据。</p>
+<p>&emsp;虽然直接内存的分配不会收到Java堆的大小限制，但是会收到本机总物理内存或虚拟内存地址空间大小限制。如果配置Xmx时忽略了这部分直接内存，导致运行时加起来超过了限制，动态扩展时就会出现OOM异常。</p>
+
     </div>
 
     
@@ -303,6 +329,10 @@
             <span class="post-nav-divider"></span>
 
             <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2019/09/18/图片测试/" rel="prev" title="图片测试">
+                  图片测试 <i class="fa fa-chevron-right"></i>
+                </a>
               
             </div>
           </div>
@@ -351,7 +381,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#JVM内存结构"><span class="nav-number">1.</span> <span class="nav-text">JVM内存结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#虚拟内存与JVM内存结构"><span class="nav-number">1.1.</span> <span class="nav-text">虚拟内存与JVM内存结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#程序计数器"><span class="nav-number">1.2.</span> <span class="nav-text">程序计数器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Java虚拟机栈"><span class="nav-number">1.3.</span> <span class="nav-text">Java虚拟机栈</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#本地方法栈"><span class="nav-number">1.4.</span> <span class="nav-text">本地方法栈</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Java堆"><span class="nav-number">1.5.</span> <span class="nav-text">Java堆</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#方法区"><span class="nav-number">1.6.</span> <span class="nav-text">方法区</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#虚拟内存与JVM内存结构"><span class="nav-number">1.</span> <span class="nav-text">虚拟内存与JVM内存结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#程序计数器"><span class="nav-number">2.</span> <span class="nav-text">程序计数器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Java虚拟机栈"><span class="nav-number">3.</span> <span class="nav-text">Java虚拟机栈</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#本地方法栈"><span class="nav-number">4.</span> <span class="nav-text">本地方法栈</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Java堆"><span class="nav-number">5.</span> <span class="nav-text">Java堆</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#方法区"><span class="nav-number">6.</span> <span class="nav-text">方法区</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#运行时常量池"><span class="nav-number">7.</span> <span class="nav-text">运行时常量池</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#直接内存"><span class="nav-number">8.</span> <span class="nav-text">直接内存</span></a></li></ol></div>
         
       </div>
       <!--/noindex-->
@@ -366,7 +396,7 @@
         
           <a href="/archives/">
         
-          <span class="site-state-item-count">2</span>
+          <span class="site-state-item-count">3</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
