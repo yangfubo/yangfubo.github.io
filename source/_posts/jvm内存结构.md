@@ -9,14 +9,14 @@ tags:
 ### 虚拟内存与JVM内存结构
 &emsp;在我们学习c语言/操作系统的时候，知道进程的内存结构有代码段，数据段[初始化数据段（初始化的全局和静态变量），未初始化数据段(又称bbs，未初始化的全局变量和静态变量)]，堆，共享库，栈，内核空间。详细了解可以搜索虚拟内存相关知识。 
 
-![虚拟内存结构](https://raw.githubusercontent.com/yangfubo/yangfubo.github.io/dev/images/%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84/%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84.png "虚拟内存结构")
+![](jvm内存结构/虚拟内存结构.png)
 <center>图1.虚拟内存结构</center>
 
-![](jvm内存结构/虚拟内存结构.png)
+
  
 &emsp;虚拟机的内存结构与进程的虚拟内存结构类似，那么Java虚拟机是怎么抽象它的内存结构的呢？根据Java虚拟机规范，JVM所管理的内存包含以下几个运行时区域。可以按线程隔离和共享来分类。共享的有堆、方法区，线程隔离的有PC程序计数器、虚拟机栈、本地方法栈。如下图所示：
 
-![虚拟机内存结构概览](https://raw.githubusercontent.com/yangfubo/yangfubo.github.io/dev/images/%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84/java%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%842.png "虚拟机内存结构概览")
+![](jvm内存结构/JVM内存结构概览.png)
 <center>图2.JVM内存结构概览</center>
 
 ### 程序计数器
@@ -125,7 +125,7 @@ tags:
 
 &emsp;Java堆内存大小由Xms初始大小（memory start）,Xmx最大内存(memory max)这两个参数控制。形成可扩展的堆内存。如果申请内存时不能再扩展了，就会抛出OutOfMemoryError异常。
 
-![堆内存分代结构](https://raw.githubusercontent.com/yangfubo/yangfubo.github.io/dev/images/虚拟机内存结构/堆内存.jpg "堆内存分代结构")
+![](jvm内存结构/堆内存分代结构.jpg)
 <center>图3.堆内存分代结构</center>
 
 ### 方法区
