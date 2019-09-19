@@ -2,13 +2,13 @@
 title: JVM内存结构
 date: 2019-09-17 09:53:58
 categories: Java虚拟机
-tags:
+tags: JVM内存结构
 
 ---
 
 ### 虚拟内存与JVM内存结构
 &emsp;在我们学习c语言/操作系统的时候，知道进程的内存结构有代码段，数据段[初始化数据段（初始化的全局和静态变量），未初始化数据段(又称bbs，未初始化的全局变量和静态变量)]，堆，共享库，栈，内核空间。详细了解可以搜索虚拟内存相关知识。 
-
+<!-- more -->
 ![](jvm内存结构/虚拟内存结构.png)
 <center>图1.虚拟内存结构</center>
 
@@ -119,17 +119,97 @@ tags:
 &emsp;这个栈与虚拟机栈结构类似，是Native方法执行时的栈帧。不同的虚拟机有不同的实现，但是Hotspot虚拟机是将两者合二为一的。
 
 ### Java堆
-&emsp;在C中，堆是动态内存区域，由malloc()函数分配内存，Hotspot虚拟机是由C++实现的，那么内存分配可能是由new操作符。具体的可能要看虚拟机源码才能清楚，总之，先不管是由什么实现，先理解Java虚拟机的中的堆。Java堆可以说是虚拟机中最大的一块内存了，它的唯一目的就是存放实例对象的数据，通过new出的对象和数组一般都是放到堆中的。随着JIT编译器的发展和逃逸分析技术的成熟，**栈上分配、标量替换**优化技术使得不再完全是堆上分配。
+&emsp;在C中，堆是动态内存区域，由malloc()函数分配内存，Hotspot虚拟机是由C++实现的，那么内存分配可能是由new操作符。具体的可能要看虚拟机源码才能清楚，总之，先不管是由什么实现，先理解Java虚拟机的中的堆。Java堆可以说是虚拟机中最大的一块内存了，它的唯一目的就是存放实例对象的数据，通过new出的对象和数组一般都是放到堆中的。随着JIT编译器的发展和逃逸分析技术的成熟，**栈上分配、标量替换**优化技术使得不再完全是堆上分配。栈上分配c语言有个函数alloca()就是进行栈上分配内存。标量替换：通过逃逸分析确定该对象不会被外部访问，并且对象可以被进一步分解时，JVM不会创建该对象，而会将该对象成员变量分解若干个被这个方法使用的成员变量所代替。这些代替的成员变量在栈帧或寄存器上分配空间。
 
-&emsp;Java堆是垃圾收集器管理的主要区域，这里有大量对象朝生夕死，也有老顽固存活下来。垃圾收集器现在基本上是**分代收集算法**，所以垃圾收集器把Java堆分为 年轻代{eden区、survivor区[survivor from(s0)、survicor to(s1)]}、老年代，可见上图内存结构总览。从内存分配角度来看，为了解决并发分配对象的效率，线程共享的堆中又各自有各自的**TLAB分配缓冲区**（Thread Local Allocation Buffer）使用-XX:+/-UseTLAB开启关闭（默认开启）。
-
-&emsp;Java堆内存大小由Xms初始大小（memory start）,Xmx最大内存(memory max)这两个参数控制。形成可扩展的堆内存。如果申请内存时不能再扩展了，就会抛出OutOfMemoryError异常。
+&emsp;Java堆是垃圾收集器管理的主要区域，这里有大量对象朝生夕死，也有老顽固存活下来。垃圾收集器基本上是**分代收集算法**，所以垃圾收集器把Java堆分为 年轻代{eden区、survivor区[survivor from(s0)、survicor to(s1)]}、老年代，可见上图内存结构总览。从内存分配角度来看，为了解决并发分配对象的效率，线程共享的堆中又各自有各自的**TLAB分配缓冲区**（Thread Local Allocation Buffer）使用-XX:+/-UseTLAB开启关闭（默认开启）。
 
 ![](jvm内存结构/堆内存分代结构.jpg)
 <center>图3.堆内存分代结构</center>
 
+&emsp;Java堆内存大小由Xms初始大小（memory start）,Xmx最大内存(memory max)这两个参数控制。形成可扩展的堆内存。如果申请内存时不能再扩展了，就会抛出OutOfMemoryError异常。以下是测试代码：
+```java  
+
+	import java.util.ArrayList;
+	import java.util.List;
+	
+	public class HeapOOM {
+	
+	    public static void main(String[] args){
+	        String test = "heapOOm";
+	        List<String> list = new ArrayList<>(100000);
+	        while (true){
+	            String str = test + test;
+	            list.add(str.intern());
+	        }
+	    }
+	}
+
+```
+
+```java
+
+	Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
+		at java.util.Arrays.copyOf(Arrays.java:3210)
+		at java.util.Arrays.copyOf(Arrays.java:3181)
+		at java.util.ArrayList.grow(ArrayList.java:261)
+		at java.util.ArrayList.ensureExplicitCapacity(ArrayList.java:235)
+		at java.util.ArrayList.ensureCapacityInternal(ArrayList.java:227)
+		at java.util.ArrayList.add(ArrayList.java:458)
+		at practice.heapOOM.HeapOOM.main(HeapOOM.java:13)
+
+```
+
+&emsp;一般来说，引起堆OOM的，要么是系统长时间运行，存在内存泄漏leak,积少成多最终导致垃圾收集器无法回收这些没用的对象数据，要么是本身配置的内存就不够，动态扩展时申请不到内存，出现内存溢出。
+
+
 ### 方法区
-&emsp;从名字就可以看出来，这个区域主要是存储方法的。class文件的字节码经过类加载后就进入了方法区变成class对象，所以方法区存储的是类的信息（方法、常量池、静态属性）、即时编译器JIT编译后的代码等数据。GC垃圾收集器在1.7及以前把该区域叫做永久代（和堆是逻辑上连续的），1.8后叫做元空间metaspace，使用Native Memory来分配空间，这样元空间的大小就由32/64位系统的虚拟内存可用大小决定，但也可用MaxMetaspaceSize参数限制。元空间是Hotspot对方法区的具体实现。并且JDK1.7及以后把在永久代的字符串常量池移到堆内存中了。
+&emsp;从名字就可以看出来，这个区域主要是存储方法的。class文件的字节码经过类加载后就进入了方法区变成class对象，所以方法区存储的是类的相关信息（如类名、访问修饰符、运行时常量池、字段描述、方法描述等），即时编译器JIT编译后的代码等数据。GC垃圾收集器在1.7及以前把该区域叫做永久代（和堆是逻辑上连续的），1.8后叫做元空间metaspace，使用Native Memory来分配空间，这样元空间的大小就由32/64位系统的虚拟内存可用大小决定，但也可用MaxMetaspaceSize参数限制。元空间是Hotspot对方法区的具体实现。并且JDK1.7及以后把在永久代的字符串常量池移到堆内存中了。
+
+&emsp;要测试方法区的OOM,基本思路是在运行时产生大量的类去填满方法区，直到溢出。所以，我们可以使用CGLib直接操作字节码运行时生成大量的动态类。示例代码如下：
+
+```java
+
+	import net.sf.cglib.proxy.Enhancer;
+	import net.sf.cglib.proxy.MethodInterceptor;
+	import net.sf.cglib.proxy.MethodProxy;
+	
+	import java.lang.reflect.Method;
+	
+	/**
+	 * VM args: -XX:MaxMetaspaceSize=10m
+	 *
+	 */
+	public class MethodAreaClassOOM {
+	
+	    static class OOMObject{}
+	
+	    public static void main(String[] args)
+	    {
+	        while(true)
+	        {
+	            Enhancer enhancer = new Enhancer();
+	            enhancer.setSuperclass(OOMObject.class);
+	            enhancer.setUseCache(false);
+	            enhancer.setCallback(new MethodInterceptor() {
+	                @Override
+	                public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
+	                {
+	                    return proxy.invokeSuper(obj, args);
+	                }
+	            });
+	            enhancer.create();
+	        }
+	    }
+	}
+```
+
+```java  
+
+	Caused by: java.lang.OutOfMemoryError: Metaspace
+		at java.lang.ClassLoader.defineClass1(Native Method)
+		at java.lang.ClassLoader.defineClass(ClassLoader.java:760)
+		... 11 more
+```
 
 ### 运行时常量池
 &emsp;Class文件除了类的版本、字段、方法、接口等信息外，还有一项信息是常量池（Constants Pool Table），用于存放编译期生成的各种**字面量和符号引用**，这部分内容将在类加载后进入方法区每个类的运行时常量池，当然也会把翻译出的直接引用存储在运行时常量池中。
@@ -140,5 +220,37 @@ tags:
 &emsp;直接内存并不是虚拟机运行时数据区的一部分，也不是Java虚拟机规范中定义的内存区域。但是这部分内存也被频繁的使用，而且也可能导致OOM异常出现。
 在JDK1.4中新加入的NIO(New Input/Output)类，引入了一种基于通道channel的与缓冲区buffer的I/O方式，它可以使用Native函数库直接分配堆外内存，然后通过一个存储在Java堆中的DirectByteBuffer对象作为这块内存的引用进行操作。这样显著提升了性能，因为避免了在堆内存和Native堆中来回复制数据。
 
-&emsp;虽然直接内存的分配不会收到Java堆的大小限制，但是会收到本机总物理内存或虚拟内存地址空间大小限制。如果配置Xmx时忽略了这部分直接内存，导致运行时加起来超过了限制，动态扩展时就会出现OOM异常。
+&emsp;虽然直接内存的分配不会收到Java堆的大小限制，但是会收到本机总物理内存或虚拟内存地址空间大小限制。如果配置Xmx时忽略了这部分直接内存，导致运行时加起来超过了限制，动态扩展时就会出现OOM异常。可通过-XX:MaxDirectMemorySize指定直接内存的大小。如果不指定，默认与-Xmx一样大。以下是测试OOM代码，代码越过DirectByteBuffer类，直接通过反射获取Unsafe实例进行内存分配（Unsafe类的getUnsafe()方法限制了只有引导类加载器才会返回实例，也就是只有rt.jar中的类才能使用Unsafe）。
+
+```java
+
+	/**
+	 * VMargs: -XX:DirectMemorySize=10M
+	 *
+	 */
+	public class DirectMemoryOOM {
+	
+	    private static final int ONE_MB = 1024 * 1024;
+	
+	    public static void main(String[] args) throws NoSuchFieldException, IllegalAccessException {
+	
+	        Field field = Unsafe.class.getDeclaredField("theUnsafe");
+	        field.setAccessible(true);
+	        Unsafe unsafe = (Unsafe) field.get(null);
+	        while (true) {
+	            unsafe.allocateMemory(ONE_MB);
+	        }
+	    }
+	
+	}
+
+```
+
+```java
+	
+	Exception in thread "main" java.lang.OutOfMemoryError
+		at sun.misc.Unsafe.allocateMemory(Native Method)
+		at practice.directMemoryOOM.DirectMemoryOOM.main(DirectMemoryOOM.java:21)
+
+```
 
