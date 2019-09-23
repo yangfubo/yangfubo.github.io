@@ -55,18 +55,20 @@
   };
 </script>
 
-  <meta name="description" content="&amp;emps;垃圾收集是C++与Java的一大不同点，C++中需要手动释放内存，编写析构函数。而JVM则由后台垃圾收集线程帮我们处理垃圾对象，减少了开发人员写代码忘记编写析构，或错误析构的可能。在JVM内存结构中已经大致了解过heap堆的分代。现在的垃圾收集器基本都采用分代收集算法。因为某论文中证明大多数对象是朝生夕死的，分代算法提高垃圾收集的效率。">
+  <meta name="description" content="&amp;emsp;垃圾收集是C++与Java的一大不同点，C++中需要手动释放内存，编写析构函数。而JVM则由后台垃圾收集线程帮我们处理垃圾对象，减少了开发人员写代码忘记编写析构，或错误析构的可能。在JVM内存结构中已经大致了解过heap堆的分代。现在的垃圾收集器基本都采用分代收集算法。因为某论文中证明大多数对象是朝生夕死的，分代算法提高垃圾收集的效率。">
 <meta name="keywords" content="JVM垃圾回收">
 <meta property="og:type" content="article">
 <meta property="og:title" content="JVM垃圾回收">
 <meta property="og:url" content="http://yangfubo.github.io/2019/09/20/JVM垃圾回收/index.html">
 <meta property="og:site_name" content="Bob&#39;s Blogs">
-<meta property="og:description" content="&amp;emps;垃圾收集是C++与Java的一大不同点，C++中需要手动释放内存，编写析构函数。而JVM则由后台垃圾收集线程帮我们处理垃圾对象，减少了开发人员写代码忘记编写析构，或错误析构的可能。在JVM内存结构中已经大致了解过heap堆的分代。现在的垃圾收集器基本都采用分代收集算法。因为某论文中证明大多数对象是朝生夕死的，分代算法提高垃圾收集的效率。">
+<meta property="og:description" content="&amp;emsp;垃圾收集是C++与Java的一大不同点，C++中需要手动释放内存，编写析构函数。而JVM则由后台垃圾收集线程帮我们处理垃圾对象，减少了开发人员写代码忘记编写析构，或错误析构的可能。在JVM内存结构中已经大致了解过heap堆的分代。现在的垃圾收集器基本都采用分代收集算法。因为某论文中证明大多数对象是朝生夕死的，分代算法提高垃圾收集的效率。">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-09-23T09:19:59.010Z">
+<meta property="og:image" content="http://yangfubo.github.io/2019/09/20/JVM垃圾回收/%E5%8F%AF%E8%BE%BE%E6%80%A7%E5%88%86%E6%9E%90-GCRoots.png">
+<meta property="og:updated_time" content="2019-09-23T09:26:19.162Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="JVM垃圾回收">
-<meta name="twitter:description" content="&amp;emps;垃圾收集是C++与Java的一大不同点，C++中需要手动释放内存，编写析构函数。而JVM则由后台垃圾收集线程帮我们处理垃圾对象，减少了开发人员写代码忘记编写析构，或错误析构的可能。在JVM内存结构中已经大致了解过heap堆的分代。现在的垃圾收集器基本都采用分代收集算法。因为某论文中证明大多数对象是朝生夕死的，分代算法提高垃圾收集的效率。">
+<meta name="twitter:description" content="&amp;emsp;垃圾收集是C++与Java的一大不同点，C++中需要手动释放内存，编写析构函数。而JVM则由后台垃圾收集线程帮我们处理垃圾对象，减少了开发人员写代码忘记编写析构，或错误析构的可能。在JVM内存结构中已经大致了解过heap堆的分代。现在的垃圾收集器基本都采用分代收集算法。因为某论文中证明大多数对象是朝生夕死的，分代算法提高垃圾收集的效率。">
+<meta name="twitter:image" content="http://yangfubo.github.io/2019/09/20/JVM垃圾回收/%E5%8F%AF%E8%BE%BE%E6%80%A7%E5%88%86%E6%9E%90-GCRoots.png">
   <link rel="canonical" href="http://yangfubo.github.io/2019/09/20/JVM垃圾回收/">
 
 
@@ -308,7 +310,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-09-23 17:19:59" itemprop="dateModified" datetime="2019-09-23T17:19:59+08:00">2019-09-23</time>
+                <time title="修改时间：2019-09-23 17:26:19" itemprop="dateModified" datetime="2019-09-23T17:26:19+08:00">2019-09-23</time>
               </span>
             
           
@@ -337,11 +339,11 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>&emps;垃圾收集是C++与Java的一大不同点，C++中需要手动释放内存，编写析构函数。而JVM则由后台垃圾收集线程帮我们处理垃圾对象，减少了开发人员写代码忘记编写析构，或错误析构的可能。在JVM内存结构中已经大致了解过heap堆的分代。现在的垃圾收集器基本都采用分代收集算法。因为某论文中证明大多数对象是朝生夕死的，分代算法提高垃圾收集的效率。</p><a id="more"></a>
+        <p>&emsp;垃圾收集是C++与Java的一大不同点，C++中需要手动释放内存，编写析构函数。而JVM则由后台垃圾收集线程帮我们处理垃圾对象，减少了开发人员写代码忘记编写析构，或错误析构的可能。在JVM内存结构中已经大致了解过heap堆的分代。现在的垃圾收集器基本都采用分代收集算法。因为某论文中证明大多数对象是朝生夕死的，分代算法提高垃圾收集的效率。</p><a id="more"></a>
 <h3 id="标记垃圾对象"><a href="#标记垃圾对象" class="headerlink" title="标记垃圾对象"></a>标记垃圾对象</h3><p>&emsp;那么，首先的问题是，JVM怎么知道哪些对象是需要收集的呢？在对象头的Mark Word标记字中，锁标志位（01无锁或偏向锁，00轻量级锁，10重量级锁，11GC标记）为11的话就表示该对象就要被回收了。那么是用什么方法进行标记的呢？</p>
 <h4 id="引用计数法"><a href="#引用计数法" class="headerlink" title="引用计数法"></a>引用计数法</h4><p>&emsp;引用计数法就是给对象加一个引用计数器，统计该对象被引用的次数，当被引用后+1，引用失效就-1，如果为0则表示当前没有其他地方引用这个对象了，就可以回收了。似乎这样的算法很简单，也容易实现。但是，存在这样一种情况，A对象引用B,而B对象又引用A，他们相互引用，那么计数则永远不可能为0，这时就无法回收A和B。所以JVM的垃圾收集一般不采用这种算法。</p>
 <h4 id="可达性分析-GC-Roots"><a href="#可达性分析-GC-Roots" class="headerlink" title="可达性分析-GC Roots"></a>可达性分析-GC Roots</h4><p>&emsp;可达性分析算法就是 将一些对象作为根节点即GC Root，向下搜索它的字段，搜索走过的路径叫做引用链refrence Chain,那么当一个对象到 GC Roots没有一个引用链与之相连（图论中就是GC Root到这个对象不可达），那么对象就是不可用的，需要清理。如下图所示：</p>
-<p>![](JVM垃圾回收/可达性分析-GC Roots.png)</p>
+<p><img src="//yangfubo.github.io/2019/09/20/JVM垃圾回收/%E5%8F%AF%E8%BE%BE%E6%80%A7%E5%88%86%E6%9E%90-GCRoots.png" alt></p>
 <p>&emsp;从图中可以看到，方法区中类的静态属性，方法区中的常量，虚拟机栈中的局部变量 可以作为GC Root,从它们出发，区分开可用和不可用对象。那么当执行系统停顿下来后，并不需要一个不漏地检查完所有局部变量和全局的引用位置，在Hotspot实现中，是使用一组称为OopMap的数据结构来直接记录哪些地方存放着对象引用。在JIT编译过程中，也会记录下栈和寄存器中哪些位置是引用，这样GC在扫描时就可以准确知道这些对象的引用。</p>
 <h3 id="Stop-The-World"><a href="#Stop-The-World" class="headerlink" title="Stop-The-World"></a>Stop-The-World</h3><p>&emsp;标记完对象就要开始清理了，那这个过程最好理解的就是，把用户的线程全部停下来，垃圾收集线程开始清理，如果一边清理，用户线程一边运行，那可能就会产生新的要回收的垃圾对象。就好比，你妈妈在打扫房间，你还一个劲的往地上扔垃圾，这样怎么打扫得干净呢。所以，垃圾清理线程工作的时候，其他用户线程都应该停止。</p>
 <p>&emsp;这个过程就叫做Stop-The-World,顾名思义，对用户Java线程，就好像全世界都停止了一样。当要进行GC的时候,JVM会告诉所有线程，我要进行GC了，那么所有线程就会暂停等待。是怎么暂停等待的呢？总不能马上停止吧（下条指令就暂停）？那么接下来就讲讲安全点safe point。</p>
