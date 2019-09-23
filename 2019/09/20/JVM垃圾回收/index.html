@@ -64,7 +64,11 @@
 <meta property="og:description" content="&amp;emsp;垃圾收集是C++与Java的一大不同点，C++中需要手动释放内存，编写析构函数。而JVM则由后台垃圾收集线程帮我们处理垃圾对象，减少了开发人员写代码忘记编写析构，或错误析构的可能。在JVM内存结构中已经大致了解过heap堆的分代。现在的垃圾收集器基本都采用分代收集算法。因为某论文中证明大多数对象是朝生夕死的，分代算法提高垃圾收集的效率。">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://yangfubo.github.io/2019/09/20/JVM垃圾回收/%E5%8F%AF%E8%BE%BE%E6%80%A7%E5%88%86%E6%9E%90-GCRoots.png">
-<meta property="og:updated_time" content="2019-09-23T09:26:19.162Z">
+<meta property="og:image" content="http://yangfubo.github.io/2019/09/20/JVM垃圾回收/%E6%A0%87%E8%AE%B0-%E6%B8%85%E9%99%A4%E7%AE%97%E6%B3%95.jpg">
+<meta property="og:image" content="http://yangfubo.github.io/2019/09/20/JVM垃圾回收/%E6%A0%87%E8%AE%B0-%E5%A4%8D%E5%88%B6%E7%AE%97%E6%B3%95.jpg">
+<meta property="og:image" content="http://yangfubo.github.io/2019/09/20/JVM垃圾回收/%E6%A0%87%E8%AE%B0-%E6%95%B4%E7%90%86%E7%AE%97%E6%B3%95.jpg">
+<meta property="og:image" content="http://yangfubo.github.io/2019/09/20/JVM垃圾回收/%E5%88%86%E4%BB%A3%E6%94%B6%E9%9B%86%E7%AE%97%E6%B3%95.jpg">
+<meta property="og:updated_time" content="2019-09-23T10:13:30.030Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="JVM垃圾回收">
 <meta name="twitter:description" content="&amp;emsp;垃圾收集是C++与Java的一大不同点，C++中需要手动释放内存，编写析构函数。而JVM则由后台垃圾收集线程帮我们处理垃圾对象，减少了开发人员写代码忘记编写析构，或错误析构的可能。在JVM内存结构中已经大致了解过heap堆的分代。现在的垃圾收集器基本都采用分代收集算法。因为某论文中证明大多数对象是朝生夕死的，分代算法提高垃圾收集的效率。">
@@ -310,7 +314,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-09-23 17:26:19" itemprop="dateModified" datetime="2019-09-23T17:26:19+08:00">2019-09-23</time>
+                <time title="修改时间：2019-09-23 18:13:30" itemprop="dateModified" datetime="2019-09-23T18:13:30+08:00">2019-09-23</time>
               </span>
             
           
@@ -344,6 +348,8 @@
 <h4 id="引用计数法"><a href="#引用计数法" class="headerlink" title="引用计数法"></a>引用计数法</h4><p>&emsp;引用计数法就是给对象加一个引用计数器，统计该对象被引用的次数，当被引用后+1，引用失效就-1，如果为0则表示当前没有其他地方引用这个对象了，就可以回收了。似乎这样的算法很简单，也容易实现。但是，存在这样一种情况，A对象引用B,而B对象又引用A，他们相互引用，那么计数则永远不可能为0，这时就无法回收A和B。所以JVM的垃圾收集一般不采用这种算法。</p>
 <h4 id="可达性分析-GC-Roots"><a href="#可达性分析-GC-Roots" class="headerlink" title="可达性分析-GC Roots"></a>可达性分析-GC Roots</h4><p>&emsp;可达性分析算法就是 将一些对象作为根节点即GC Root，向下搜索它的字段，搜索走过的路径叫做引用链refrence Chain,那么当一个对象到 GC Roots没有一个引用链与之相连（图论中就是GC Root到这个对象不可达），那么对象就是不可用的，需要清理。如下图所示：</p>
 <p><img src="//yangfubo.github.io/2019/09/20/JVM垃圾回收/%E5%8F%AF%E8%BE%BE%E6%80%A7%E5%88%86%E6%9E%90-GCRoots.png" alt></p>
+<center>可达性分析-GC Roots</center>
+
 <p>&emsp;从图中可以看到，方法区中类的静态属性，方法区中的常量，虚拟机栈中的局部变量 可以作为GC Root,从它们出发，区分开可用和不可用对象。那么当执行系统停顿下来后，并不需要一个不漏地检查完所有局部变量和全局的引用位置，在Hotspot实现中，是使用一组称为OopMap的数据结构来直接记录哪些地方存放着对象引用。在JIT编译过程中，也会记录下栈和寄存器中哪些位置是引用，这样GC在扫描时就可以准确知道这些对象的引用。</p>
 <h3 id="Stop-The-World"><a href="#Stop-The-World" class="headerlink" title="Stop-The-World"></a>Stop-The-World</h3><p>&emsp;标记完对象就要开始清理了，那这个过程最好理解的就是，把用户的线程全部停下来，垃圾收集线程开始清理，如果一边清理，用户线程一边运行，那可能就会产生新的要回收的垃圾对象。就好比，你妈妈在打扫房间，你还一个劲的往地上扔垃圾，这样怎么打扫得干净呢。所以，垃圾清理线程工作的时候，其他用户线程都应该停止。</p>
 <p>&emsp;这个过程就叫做Stop-The-World,顾名思义，对用户Java线程，就好像全世界都停止了一样。当要进行GC的时候,JVM会告诉所有线程，我要进行GC了，那么所有线程就会暂停等待。是怎么暂停等待的呢？总不能马上停止吧（下条指令就暂停）？那么接下来就讲讲安全点safe point。</p>
@@ -353,9 +359,24 @@
 <p>详细了解 <a href="https://www.zhihu.com/question/29268019" target="_blank" rel="noopener">R大对safe point的解释</a></p>
 <h3 id="垃圾收集算法"><a href="#垃圾收集算法" class="headerlink" title="垃圾收集算法"></a>垃圾收集算法</h3><p>&emsp;这部分呢，只对算法进行一个大概的讲解。理解了算法的精髓，对于垃圾收集的整个过程也就有了整体的认识。不要求太多的细节，理解每种算法思想，它的优势，劣势。</p>
 <h4 id="标记-清除"><a href="#标记-清除" class="headerlink" title="标记-清除"></a>标记-清除</h4><p>&emsp;标记-清除（Mark-Sweep）算法,前面已经讲过如何进行标记了，标记完后，进行清除，因为java堆是逻辑连续的（虚拟内存上看是连续，实际物理内存不一定），清理掉的对象就会形成<strong>内存碎片</strong>，那么以后在分配大对象的时候，明明还有可用内存，却无法找到一块足够放得下的内存而不得不触发另一种垃圾收集动作。这种算法易产生内存碎片，同时清理对象效率也不高。分配新对象的内存时，需要使用空闲内存列表来分配，这种分配方法叫空闲列表free-list。</p>
+<p><img src="//yangfubo.github.io/2019/09/20/JVM垃圾回收/%E6%A0%87%E8%AE%B0-%E6%B8%85%E9%99%A4%E7%AE%97%E6%B3%95.jpg" alt></p>
+<center>标记-清除算法</center>
+
 <h4 id="复制"><a href="#复制" class="headerlink" title="复制"></a>复制</h4><p>&emsp;复制算法Copying，将内存划分为大小相等的两块，标记完成后，将可用对象复制到另一块内存，清空第一块内存，相比清除算法，这样清理动作就效率很高，同时分配内存的时候，只需要往后追加就行（指针加法bump-the-pointer），但是会有一半的内存不能使用，造成<strong>一半空间浪费</strong>。</p>
+<p><img src="//yangfubo.github.io/2019/09/20/JVM垃圾回收/%E6%A0%87%E8%AE%B0-%E5%A4%8D%E5%88%B6%E7%AE%97%E6%B3%95.jpg" alt></p>
+<center>标记-复制算法</center>
+
 <h4 id="标记-整理"><a href="#标记-整理" class="headerlink" title="标记-整理"></a>标记-整理</h4><p>&emsp;标记-整理（Mark-Compact）标记完成后，将可用内存依次移动到一起，最后清除掉剩余部分的内存，这样就形成了连续的内存，不存在内存碎片。虽然清除动作很高效，但是整理的过程效率不好，还要改变对象之间引用的地址关系。</p>
-<h4 id="分代收集算法"><a href="#分代收集算法" class="headerlink" title="分代收集算法"></a>分代收集算法</h4><p>&emsp;国外某某发布的一篇论文中证明大部分对象都是朝生夕死的，只有少部分的对象存活了下来。所以结合前面几种算法，将java堆划分为年轻代，老年代，年轻代又划分为Eden, from survivor(s0),to survivor(s1),默认比例是eden:s0:s1=8:1:1。通常在年轻代的eden区分配新对象，GC时，将eden区和from survivor中的存活对象采用复制算法复制到to survivor，然后交换s0,s1身份。如果from survivor有存活了好几代的对象，则将它晋升到老年代。如果eden + from survivor存活对象大小&gt;to survivor大小，则有部分对象也会晋升。老年代因为是长期存活下来的对象，意味着它变动不大，当老年代因为晋升或者分配大对象而内存不够时便会发生GC,此时采用的算法一般是标记-清理或标记-整理。<br>年轻代使用-Xmn128m(memory new)指定大小。老年代则是当前java堆大小减去Xmn,java堆由Xms(memory start)和Xmx(memory max)指定。</p>
+<p><img src="//yangfubo.github.io/2019/09/20/JVM垃圾回收/%E6%A0%87%E8%AE%B0-%E6%95%B4%E7%90%86%E7%AE%97%E6%B3%95.jpg" alt></p>
+<center>标记整理算法</center>
+#### 分代收集算法
+&emsp;国外某某发布的一篇论文中证明大部分对象都是朝生夕死的，只有少部分的对象存活了下来。所以结合前面几种算法，将java堆划分为年轻代，老年代，年轻代又划分为Eden, from survivor(s0),to survivor(s1),默认比例是eden:s0:s1=8:1:1。通常在年轻代的eden区分配新对象，GC时，将eden区和from survivor中的存活对象采用复制算法复制到to survivor，然后交换s0,s1身份。如果from survivor有存活了好几代的对象，则将它晋升到老年代。如果eden + from survivor存活对象大小>to survivor大小，则有部分对象也会晋升。老年代因为是长期存活下来的对象，意味着它变动不大，当老年代因为晋升或者分配大对象而内存不够时便会发生GC,此时采用的算法一般是标记-清理或标记-整理。
+年轻代使用-Xmn128m(memory new)指定大小。老年代则是当前java堆大小减去Xmn,java堆由Xms(memory start)和Xmx(memory max)指定。
+
+
+<p><img src="//yangfubo.github.io/2019/09/20/JVM垃圾回收/%E5%88%86%E4%BB%A3%E6%94%B6%E9%9B%86%E7%AE%97%E6%B3%95.jpg" alt></p>
+<center>分代收集算法</center>
+
 <h3 id="垃圾收集器"><a href="#垃圾收集器" class="headerlink" title="垃圾收集器"></a>垃圾收集器</h3><p>&emsp;提前说明：下方的并发是指多个垃圾收集线程同时工作，并行是指多个垃圾收集线程与用户线程同时运行。</p>
 <p>Serial 新生代，单线程</p>
 <p>Serial Old 老年代，单线程</p>
@@ -460,7 +481,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#标记垃圾对象"><span class="nav-number">1.</span> <span class="nav-text">标记垃圾对象</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#引用计数法"><span class="nav-number">1.1.</span> <span class="nav-text">引用计数法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#可达性分析-GC-Roots"><span class="nav-number">1.2.</span> <span class="nav-text">可达性分析-GC Roots</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Stop-The-World"><span class="nav-number">2.</span> <span class="nav-text">Stop-The-World</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#安全点与安全区"><span class="nav-number">2.1.</span> <span class="nav-text">安全点与安全区</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#垃圾收集算法"><span class="nav-number">3.</span> <span class="nav-text">垃圾收集算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#标记-清除"><span class="nav-number">3.1.</span> <span class="nav-text">标记-清除</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#复制"><span class="nav-number">3.2.</span> <span class="nav-text">复制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#标记-整理"><span class="nav-number">3.3.</span> <span class="nav-text">标记-整理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#分代收集算法"><span class="nav-number">3.4.</span> <span class="nav-text">分代收集算法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#垃圾收集器"><span class="nav-number">4.</span> <span class="nav-text">垃圾收集器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内存分配与回收策略"><span class="nav-number">5.</span> <span class="nav-text">内存分配与回收策略</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GC日志"><span class="nav-number">6.</span> <span class="nav-text">GC日志</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#标记垃圾对象"><span class="nav-number">1.</span> <span class="nav-text">标记垃圾对象</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#引用计数法"><span class="nav-number">1.1.</span> <span class="nav-text">引用计数法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#可达性分析-GC-Roots"><span class="nav-number">1.2.</span> <span class="nav-text">可达性分析-GC Roots</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Stop-The-World"><span class="nav-number">2.</span> <span class="nav-text">Stop-The-World</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#安全点与安全区"><span class="nav-number">2.1.</span> <span class="nav-text">安全点与安全区</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#垃圾收集算法"><span class="nav-number">3.</span> <span class="nav-text">垃圾收集算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#标记-清除"><span class="nav-number">3.1.</span> <span class="nav-text">标记-清除</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#复制"><span class="nav-number">3.2.</span> <span class="nav-text">复制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#标记-整理"><span class="nav-number">3.3.</span> <span class="nav-text">标记-整理</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#垃圾收集器"><span class="nav-number">4.</span> <span class="nav-text">垃圾收集器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内存分配与回收策略"><span class="nav-number">5.</span> <span class="nav-text">内存分配与回收策略</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GC日志"><span class="nav-number">6.</span> <span class="nav-text">GC日志</span></a></li></ol></div>
         
       </div>
       <!--/noindex-->
