@@ -66,7 +66,7 @@
 <meta property="og:image" content="http://yangfubo.github.io/2019/09/25/class文件常量池，运行时常量池，字符串常量池到底都是啥？/class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A01.png">
 <meta property="og:image" content="http://yangfubo.github.io/2019/09/25/class文件常量池，运行时常量池，字符串常量池到底都是啥？/class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A02.png">
 <meta property="og:image" content="http://yangfubo.github.io/2019/09/25/class文件常量池，运行时常量池，字符串常量池到底都是啥？/3%E4%B8%AA%E5%B8%B8%E9%87%8F%E6%B1%A0%E7%9A%84%E5%85%B3%E7%B3%BB%E7%A4%BA%E6%84%8F%E5%9B%BE.jpg">
-<meta property="og:updated_time" content="2019-09-26T11:54:24.639Z">
+<meta property="og:updated_time" content="2019-09-26T12:41:24.765Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="class文件常量池，运行时常量池，字符串常量池到底都是啥？">
 <meta name="twitter:description" content="傻傻分不清楚&amp;emsp;在看《深入理解Java虚拟机》的时候，在前面的内存结构章节中，方法区中有运行时常量池，在学class文件结构的时候，又发现有class文件常量池，然后呢，还有个全局的字符串常量池（String table）。在网上搜索他们的区别，也很少有能够讲的清楚的。当然，也并不是说我就讲的清楚了。我也只是把我自己的理解用文字记录下来。以便以后还是傻傻分不清。下面将会按照他们产生的顺序开">
@@ -312,7 +312,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-09-26 19:54:24" itemprop="dateModified" datetime="2019-09-26T19:54:24+08:00">2019-09-26</time>
+                <time title="修改时间：2019-09-26 20:41:24" itemprop="dateModified" datetime="2019-09-26T20:41:24+08:00">2019-09-26</time>
               </span>
             
           
@@ -349,7 +349,7 @@
 
 
 
-<h3 id="运行时常量池（Runtime-Constant-Pool）"><a href="#运行时常量池（Runtime-Constant-Pool）" class="headerlink" title="运行时常量池（Runtime Constant Pool）"></a>运行时常量池（Runtime Constant Pool）</h3><p>&emsp;前面我们已经知道class文件常量池是存放字面量和符号引用的了。那么运行时常量池是什么呢？<br>&emsp;JVM在执行某个类的时候，会经过类的加载机制，将其加载，连接（验证、准备、解析），初始化。那么当类被加载到内存后，JVM就会将class文件常量池里的字面量和符号引用加载进运行时常量池，而且运行时常量池是一个类对应其自己的运行时常量池。在解析阶段可以将符号引用解析为直接引用（包括类或接口、字段、类方法、接口方法，invokeDynamic相关的符号引用），但存在Lazy的情况，虚拟机规范没有规定解析阶段发生的具体时间，只要求在执行<code>anewarray,multianewarray,checkcast,new,getfield,getstatic,putfield,putstatic,instanceof,invokedynamic,invokeinterface,invokespecial,invokestatic,invokevirtual,ldc.ldc_w</code>这16个用于操作符号引用的字节码指令之前，先对他们进行符号引用。从反解析出的字节码中可以看到，方法的调用比如invokevirtual后面会有符号引用在class文件常量池的索引。那么运行时就是拿这个符号引用的索引，去运行时常量池中获取解析后的直接引用。</p>
+<h3 id="运行时常量池（Runtime-Constant-Pool）"><a href="#运行时常量池（Runtime-Constant-Pool）" class="headerlink" title="运行时常量池（Runtime Constant Pool）"></a>运行时常量池（Runtime Constant Pool）</h3><p>&emsp;前面我们已经知道class文件常量池是存放字面量和符号引用的了。那么运行时常量池是什么呢？<br>&emsp;JVM在执行某个类的时候，会经过类的加载机制，将其加载，连接（验证、准备、解析），初始化。那么当类被加载到内存后，JVM就会将class文件常量池里的字面量和符号引用加载进运行时常量池，而且运行时常量池是一个类对应其自己的运行时常量池。在解析阶段可以将符号引用解析为直接引用（包括类或接口、字段、类方法、接口方法，invokeDynamic相关的符号引用），但存在Lazy的情况，虚拟机规范没有规定解析阶段发生的具体时间，只要求在执行<code>anewarray,multianewarray,checkcast,new,getfield,getstatic,putfield,putstatic,instanceof,invokedynamic,invokeinterface,invokespecial,invokestatic,invokevirtual,ldc,ldc_w</code>这16个用于操作符号引用的字节码指令之前，先对他们进行符号引用。从反解析出的字节码中可以看到，方法的调用比如invokevirtual后面会有符号引用在class文件常量池的索引。那么运行时就是拿这个符号引用的索引，去运行时常量池中获取解析后的直接引用。</p>
 <h3 id="字符串常量池（String-Table）"><a href="#字符串常量池（String-Table）" class="headerlink" title="字符串常量池（String Table）"></a>字符串常量池（String Table）</h3><p>&emsp;字符串常量池，在JDK1.7将其从永久代移动到了java堆。它是全局共享的，所以也叫全局字符串常量池。如下代码在JDK1.6和JDK1.7中的OOM区域不同。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">static</span> String str = <span class="string">"test"</span>;</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span></span>&#123;</span><br><span class="line">	List&lt;String&gt; list = <span class="keyword">new</span> LinkedList&lt;&gt;();</span><br><span class="line">	<span class="keyword">while</span>(<span class="keyword">true</span>)&#123;</span><br><span class="line">		str = str+str;</span><br><span class="line">		list.add(str.intern());</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
