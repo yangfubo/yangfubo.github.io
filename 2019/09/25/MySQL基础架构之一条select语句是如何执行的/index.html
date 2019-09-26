@@ -55,17 +55,19 @@
   };
 </script>
 
-  <meta name="description" content="It&apos;s a personal blogs websit.">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Bob&#39;s Blogs">
-<meta property="og:url" content="http://yangfubo.github.io/categories/Java虚拟机/index.html">
+  <meta name="description" content="&amp;emsp;作为程序员，除了要精通一门高级编程语言外，还必须熟悉数据库（MySQL/Oracle等）。平常我们只要会写SQL,懂点索引能加速查询，知道执行一条select语句，会根据where条件筛选出我们想要的数据，也就是输入一条语句，得到输出结果。对MySQL的原理一知半解，那么在发生问题的时候，就可能不知道问题出在哪。要想往高级工程师进阶，就得去理解MySQL的内部原理，底层细节。但是我不想">
+<meta name="keywords" content="MySQL基础架构 select语句">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL基础架构之一条select语句是如何执行的">
+<meta property="og:url" content="http://yangfubo.github.io/2019/09/25/MySQL基础架构之一条select语句是如何执行的/index.html">
 <meta property="og:site_name" content="Bob&#39;s Blogs">
-<meta property="og:description" content="It&apos;s a personal blogs websit.">
+<meta property="og:description" content="&amp;emsp;作为程序员，除了要精通一门高级编程语言外，还必须熟悉数据库（MySQL/Oracle等）。平常我们只要会写SQL,懂点索引能加速查询，知道执行一条select语句，会根据where条件筛选出我们想要的数据，也就是输入一条语句，得到输出结果。对MySQL的原理一知半解，那么在发生问题的时候，就可能不知道问题出在哪。要想往高级工程师进阶，就得去理解MySQL的内部原理，底层细节。但是我不想">
 <meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-09-26T06:04:17.077Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Bob&#39;s Blogs">
-<meta name="twitter:description" content="It&apos;s a personal blogs websit.">
-  <link rel="canonical" href="http://yangfubo.github.io/categories/Java虚拟机/">
+<meta name="twitter:title" content="MySQL基础架构之一条select语句是如何执行的">
+<meta name="twitter:description" content="&amp;emsp;作为程序员，除了要精通一门高级编程语言外，还必须熟悉数据库（MySQL/Oracle等）。平常我们只要会写SQL,懂点索引能加速查询，知道执行一条select语句，会根据where条件筛选出我们想要的数据，也就是输入一条语句，得到输出结果。对MySQL的原理一知半解，那么在发生问题的时候，就可能不知道问题出在哪。要想往高级工程师进阶，就得去理解MySQL的内部原理，底层细节。但是我不想">
+  <link rel="canonical" href="http://yangfubo.github.io/2019/09/25/MySQL基础架构之一条select语句是如何执行的/">
 
 
 <script id="page-configurations">
@@ -73,13 +75,13 @@
   CONFIG.page = {
     sidebar: "",
     isHome: false,
-    isPost: false,
+    isPost: true,
     isPage: false,
     isArchive: false
   };
 </script>
 
-  <title>分类: Java虚拟机 | Bob's Blogs</title>
+  <title>MySQL基础架构之一条select语句是如何执行的 | Bob's Blogs</title>
   
 
 
@@ -258,145 +260,136 @@
         <div class="content-wrap">
             
 
-    
-    
-      
-      
-    
-      
-      
-    
-      
-      
-    
-      
-      
-    
-      
-      
-    
-      
-      
-    
-    
-
-  
-
           <div id="content" class="content">
             
 
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
   
   
   
-  <div class="post-block category">
-    <div id="posts" class="posts-collapse">
-      <div class="collection-title">
-        <h1 class="collection-header">Java虚拟机<small>分类</small>
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://yangfubo.github.io/2019/09/25/MySQL基础架构之一条select语句是如何执行的/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Bob">
+      <meta itemprop="description" content="It's a personal blogs websit.">
+      <meta itemprop="image" content="/images/head_image.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Bob's Blogs">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">MySQL基础架构之一条select语句是如何执行的
+
+          
         </h1>
-      </div>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-09-25 22:54:28" itemprop="dateCreated datePublished" datetime="2019-09-25T22:54:28+08:00">2019-09-25</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-09-26 14:04:17" itemprop="dateModified" datetime="2019-09-26T14:04:17+08:00">2019-09-26</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
 
       
+        <p>&emsp;作为程序员，除了要精通一门高级编程语言外，还必须熟悉数据库（MySQL/Oracle等）。平常我们只要会写SQL,懂点索引能加速查询，知道执行一条select语句，会根据where条件筛选出我们想要的数据，也就是输入一条语句，得到输出结果。对MySQL的原理一知半解，那么在发生问题的时候<br>，就可能不知道问题出在哪。要想往高级工程师进阶，就得去理解MySQL的内部原理，底层细节。但是我不想这么早就扎入MySQL的源码中。对于我这个初入茅庐的菜鸟程序员，还是在以后的开发中，根据实际问题再去深入研究。这篇笔记主要记录我对MySQL的基础架构的理解，好吧，下面开始。</p><a id="more"></a>
+<p>@TODO 补上图片</p>
+<p>&emsp;直接贴上MySQL的组件图，那么我们就来讲讲这个图。首先，客户端就是我们程序员主要工作的地方，你写的Java代码就会调用MySQL提供的Java客户端API。一般客户端开发框架会封装一个连接池，管理复用MySQL的连接。而MySQL可大致分为Server层和存储引擎层两部分。<br>假设我们执行这样一条SQL,select * from t where id = 1;来分析分析它的执行过程，以及各个组件都有什么作用。<br>1.连接器，负责连接管理，每个客户端连接在服务端都会对应与一个线程，连接器同样也是线程池，客户端连接用完了，不会关闭线程，而是等待处理下一个连接；权限验证，将其权限信息读入内存，验证账户和密码的正确性，下面的组件还会用到这部分权限信息。<br>顺带一提缓存，根据SQL语句查询是否有缓存，有则直接返回数据。这样看似可以加速查询，但对于读写频繁的业务，你对表上任一行做了更新操作，都会使得缓存失效，假如一条读完下条写，缓存失效，下次又读，又进缓存，这样根本没有提高效率。所以根据业务需求，判断是否需要开启缓存吧，通常建议不使用。<br>2.分析器，进行词法分析，语法分析得到语法树，验证语法是否正确，比如根据语法树判断关键字是否正确。<br>3.预处理器，此部分根据语法树中解析出的表、列信息，结合前面的权限信息判断用户是否对该表或列具有读/写权限等；<br>4.优化器，这无疑是很重要的一部分，该部分主要负责优化SQL语句，包括重写查询、决定表的读取顺序，选择合适的索引（估计哪个索引执行快）等，据此生成最优的执行计划。对于上面那条SQL语句，会选择id主键索引。<br>5.执行器，根据执行计划给出的指令，调用存储引擎的API,进行计算等。那么这个例子就是调用查询id=1的存储引擎接口。<br>6.存储引擎，提供API,存储数据，比如查询某个索引第一行的接口，查询某个索引条目（数据行）下一个条目的接口。这个例子就是遍历id主键索引树，返回给执行器id=1这一行。<br>7.返回结果集，执行器查出数据后，数据由连接器中的当前线程传送回数据，并不是所有数据都查出来了一次性返回给客户端，而是查出数据就可以往连接里传送数据了。</p>
+<p>参考资料：</p>
+<p>1.《高性能MySQL 第三版》章节1.1、6.4</p>
+<p>2.极客时间《MySQL实战45讲》–丁奇大佬，第一章《基础架构：一条SQL查询语句是如何执行的？》</p>
 
-  
-  
+    </div>
 
-  
     
-    <div class="collection-year">
-      <h1 class="collection-header">2019</h1>
-    </div>
-  
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <h2 class="post-title">
+    
+    
         
-          <a class="post-title-link" href="/2019/09/25/class文件常量池，运行时常量池，字符串常量池到底都是啥？/" itemprop="url">
-            <span itemprop="name">class文件常量池，运行时常量池，字符串常量池到底都是啥？</span>
-          </a>
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/MySQL基础架构-select语句/" rel="tag"># MySQL基础架构 select语句</a>
+            
+          </div>
         
-      </h2>
 
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated"
-              datetime="2019-09-25T09:11:47+08:00"
-              content="2019-09-25">
-          09-25
-        </time>
-      </div>
-
-    </header>
-  </article>
-
-
-
-  
-  
-
-  
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <h2 class="post-title">
         
-          <a class="post-title-link" href="/2019/09/20/JVM垃圾回收/" itemprop="url">
-            <span itemprop="name">JVM垃圾回收</span>
-          </a>
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2019/09/25/class文件常量池，运行时常量池，字符串常量池到底都是啥？/" rel="next" title="class文件常量池，运行时常量池，字符串常量池到底都是啥？">
+                  <i class="fa fa-chevron-left"></i> class文件常量池，运行时常量池，字符串常量池到底都是啥？
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+            </div>
+          </div>
         
-      </h2>
-
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated"
-              datetime="2019-09-20T11:29:54+08:00"
-              content="2019-09-20">
-          09-20
-        </time>
-      </div>
-
-    </header>
-  </article>
-
-
-
-  
-  
-
-  
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <h2 class="post-title">
-        
-          <a class="post-title-link" href="/2019/09/17/jvm内存结构/" itemprop="url">
-            <span itemprop="name">JVM内存结构</span>
-          </a>
-        
-      </h2>
-
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated"
-              datetime="2019-09-17T09:53:58+08:00"
-              content="2019-09-17">
-          09-17
-        </time>
-      </div>
-
-    </header>
-  </article>
-
-
-
-    </div>
+      </footer>
+    
   </div>
   
   
   
+  </article>
 
-  
-
+  </div>
 
 
           </div>
@@ -415,6 +408,11 @@
 
   <aside class="sidebar">
     <div class="sidebar-inner">
+        
+        
+        
+        
+      
 
       <ul class="sidebar-nav motion-element">
         <li class="sidebar-nav-toc">
