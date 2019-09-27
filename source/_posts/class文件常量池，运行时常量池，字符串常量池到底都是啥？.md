@@ -22,7 +22,7 @@ tags: class文件常量池 运行时常量池  字符串常量池
 
 ### 运行时常量池（Runtime Constant Pool）
 &emsp;前面我们已经知道class文件常量池是存放字面量和符号引用的了。那么运行时常量池是什么呢？
-&emsp;JVM在执行某个类的时候，会经过类的加载机制，将其加载，连接（验证、准备、解析），初始化。那么当类被加载到内存后，JVM就会将class文件常量池里的字面量和符号引用加载进运行时常量池，而且运行时常量池是一个类对应其自己的运行时常量池。在解析阶段可以将符号引用解析为直接引用（包括类或接口、字段、类方法、接口方法，invokeDynamic相关的符号引用），但存在Lazy的情况，虚拟机规范没有规定解析阶段发生的具体时间，只要求在执行`anewarray,multianewarray,checkcast,new,getfield,getstatic,putfield,putstatic,instanceof,invokedynamic,invokeinterface,invokespecial,invokestatic,invokevirtual,ldc.ldc_w`这16个用于操作符号引用的字节码指令之前，先对他们进行符号引用。从反解析出的字节码中可以看到，方法的调用比如invokevirtual后面会有符号引用在class文件常量池的索引。那么运行时就是拿这个符号引用的索引，去运行时常量池中获取解析后的直接引用。
+&emsp;JVM在执行某个类的时候，会经过类的加载机制，将其加载，连接（验证、准备、解析），初始化。那么当类被加载到内存后，JVM就会将class文件常量池里的字面量和符号引用加载进运行时常量池，而且运行时常量池是一个类对应其自己的运行时常量池。在解析阶段可以将符号引用解析为直接引用（包括类或接口、字段、类方法、接口方法，invokeDynamic相关的符号引用），但存在Lazy的情况，虚拟机规范没有规定解析阶段发生的具体时间，只要求在执行`anewarray,multianewarray,checkcast,new,getfield,getstatic,putfield,putstatic,instanceof,invokedynamic,invokeinterface,invokespecial,invokestatic,invokevirtual,ldc,ldc_w`这16个用于操作符号引用的字节码指令之前，先对他们进行符号引用。从反解析出的字节码中可以看到，方法的调用比如invokevirtual后面会有符号引用在class文件常量池的索引。那么运行时就是拿这个符号引用的索引，去运行时常量池中获取解析后的直接引用。
 
 ### 字符串常量池（String Table）
 &emsp;字符串常量池，在JDK1.7将其从永久代移动到了java堆。它是全局共享的，所以也叫全局字符串常量池。如下代码在JDK1.6和JDK1.7中的OOM区域不同。
