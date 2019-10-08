@@ -55,21 +55,22 @@
   };
 </script>
 
-  <meta name="description" content="&amp;emsp;作为程序员，除了要精通一门高级编程语言外，还必须熟悉数据库（MySQL/Oracle等）。平常我们只要会写SQL,懂点索引能加速查询,对于初级开发也就够了。但是如果只会输入一条语句，得到输出结果。对MySQL的原理一知半解，那么在发生问题的时候，就不知道问题出在哪。要想往高级工程师进阶，就得去理解MySQL的内部原理，底层细节。但是我不想这么早就扎入MySQL的源码中。对于我这个初入茅">
-<meta name="keywords" content="MySQL基础架构 select语句">
+  <meta name="description" content="&amp;emsp;最近在学习消息中间件，最后选择了RocketMQ来学习和应用。因为RocketMQ作为阿里开源出来的消息中间件（支持国产），经受了双11和各种大促活动的考验，是一个高可用，可扩展的成熟MQ。另外一点是它是JAVA语言写的，我是Java程序员，如果需要修改源码，那么学习成本也低很多。毕竟其他消息中间件大多都是其他语言写的，不好研究源码。事实证明，即使是我这样只有1年工作经验的菜鸟，也能看">
+<meta name="keywords" content="消息中间件 RocketMQ Producer">
 <meta property="og:type" content="article">
-<meta property="og:title" content="MySQL基础架构之一条select语句是如何执行的">
-<meta property="og:url" content="http://yangfubo.github.io/2019/09/25/MySQL基础架构之一条select语句是如何执行的/index.html">
+<meta property="og:title" content="RocketMQ源码分析之启动Producer">
+<meta property="og:url" content="http://yangfubo.github.io/2019/09/29/RocketMQ源码分析之启动Producer/index.html">
 <meta property="og:site_name" content="Bob&#39;s Blogs">
-<meta property="og:description" content="&amp;emsp;作为程序员，除了要精通一门高级编程语言外，还必须熟悉数据库（MySQL/Oracle等）。平常我们只要会写SQL,懂点索引能加速查询,对于初级开发也就够了。但是如果只会输入一条语句，得到输出结果。对MySQL的原理一知半解，那么在发生问题的时候，就不知道问题出在哪。要想往高级工程师进阶，就得去理解MySQL的内部原理，底层细节。但是我不想这么早就扎入MySQL的源码中。对于我这个初入茅">
+<meta property="og:description" content="&amp;emsp;最近在学习消息中间件，最后选择了RocketMQ来学习和应用。因为RocketMQ作为阿里开源出来的消息中间件（支持国产），经受了双11和各种大促活动的考验，是一个高可用，可扩展的成熟MQ。另外一点是它是JAVA语言写的，我是Java程序员，如果需要修改源码，那么学习成本也低很多。毕竟其他消息中间件大多都是其他语言写的，不好研究源码。事实证明，即使是我这样只有1年工作经验的菜鸟，也能看">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="http://yangfubo.github.io/2019/09/25/MySQL基础架构之一条select语句是如何执行的/MySQL%E5%9F%BA%E7%A1%80%E6%9E%B6%E6%9E%84%E5%9B%BE.jpg">
-<meta property="og:updated_time" content="2019-09-26T12:31:09.862Z">
+<meta property="og:image" content="http://yangfubo.github.io/2019/09/29/RocketMQ源码分析之启动Producer/Producer%E5%AE%9E%E7%8E%B0%E7%B1%BB%E5%9B%BE%E5%85%B3%E7%B3%BB.png">
+<meta property="og:image" content="http://yangfubo.github.io/2019/09/29/RocketMQ源码分析之启动Producer/Producer%E5%88%9D%E5%A7%8B%E5%8C%96%E8%BF%87%E7%A8%8B.png">
+<meta property="og:updated_time" content="2019-10-08T01:03:53.753Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="MySQL基础架构之一条select语句是如何执行的">
-<meta name="twitter:description" content="&amp;emsp;作为程序员，除了要精通一门高级编程语言外，还必须熟悉数据库（MySQL/Oracle等）。平常我们只要会写SQL,懂点索引能加速查询,对于初级开发也就够了。但是如果只会输入一条语句，得到输出结果。对MySQL的原理一知半解，那么在发生问题的时候，就不知道问题出在哪。要想往高级工程师进阶，就得去理解MySQL的内部原理，底层细节。但是我不想这么早就扎入MySQL的源码中。对于我这个初入茅">
-<meta name="twitter:image" content="http://yangfubo.github.io/2019/09/25/MySQL基础架构之一条select语句是如何执行的/MySQL%E5%9F%BA%E7%A1%80%E6%9E%B6%E6%9E%84%E5%9B%BE.jpg">
-  <link rel="canonical" href="http://yangfubo.github.io/2019/09/25/MySQL基础架构之一条select语句是如何执行的/">
+<meta name="twitter:title" content="RocketMQ源码分析之启动Producer">
+<meta name="twitter:description" content="&amp;emsp;最近在学习消息中间件，最后选择了RocketMQ来学习和应用。因为RocketMQ作为阿里开源出来的消息中间件（支持国产），经受了双11和各种大促活动的考验，是一个高可用，可扩展的成熟MQ。另外一点是它是JAVA语言写的，我是Java程序员，如果需要修改源码，那么学习成本也低很多。毕竟其他消息中间件大多都是其他语言写的，不好研究源码。事实证明，即使是我这样只有1年工作经验的菜鸟，也能看">
+<meta name="twitter:image" content="http://yangfubo.github.io/2019/09/29/RocketMQ源码分析之启动Producer/Producer%E5%AE%9E%E7%8E%B0%E7%B1%BB%E5%9B%BE%E5%85%B3%E7%B3%BB.png">
+  <link rel="canonical" href="http://yangfubo.github.io/2019/09/29/RocketMQ源码分析之启动Producer/">
 
 
 <script id="page-configurations">
@@ -83,7 +84,7 @@
   };
 </script>
 
-  <title>MySQL基础架构之一条select语句是如何执行的 | Bob's Blogs</title>
+  <title>RocketMQ源码分析之启动Producer | Bob's Blogs</title>
   
 
 
@@ -271,7 +272,7 @@
   
   
   <div class="post-block post">
-    <link itemprop="mainEntityOfPage" href="http://yangfubo.github.io/2019/09/25/MySQL基础架构之一条select语句是如何执行的/">
+    <link itemprop="mainEntityOfPage" href="http://yangfubo.github.io/2019/09/29/RocketMQ源码分析之启动Producer/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Bob">
@@ -283,7 +284,7 @@
       <meta itemprop="name" content="Bob's Blogs">
     </span>
       <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">MySQL基础架构之一条select语句是如何执行的
+        <h1 class="post-title" itemprop="name headline">RocketMQ源码分析之启动Producer
 
           
         </h1>
@@ -299,7 +300,7 @@
                 
               
 
-              <time title="创建时间：2019-09-25 22:54:28" itemprop="dateCreated datePublished" datetime="2019-09-25T22:54:28+08:00">2019-09-25</time>
+              <time title="创建时间：2019-09-29 20:16:38" itemprop="dateCreated datePublished" datetime="2019-09-29T20:16:38+08:00">2019-09-29</time>
             </span>
           
             
@@ -310,7 +311,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-09-26 20:31:09" itemprop="dateModified" datetime="2019-09-26T20:31:09+08:00">2019-09-26</time>
+                <time title="修改时间：2019-10-08 09:03:53" itemprop="dateModified" datetime="2019-10-08T09:03:53+08:00">2019-10-08</time>
               </span>
             
           
@@ -320,7 +321,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
               
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a></span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/RocketMQ/" itemprop="url" rel="index"><span itemprop="name">RocketMQ</span></a></span>
 
                 
                 
@@ -339,29 +340,45 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>&emsp;作为程序员，除了要精通一门高级编程语言外，还必须熟悉数据库（MySQL/Oracle等）。平常我们只要会写SQL,懂点索引能加速查询,对于初级开发也就够了。但是如果只会输入一条语句，得到输出结果。对MySQL的原理一知半解，那么在发生问题的时候<br>，就不知道问题出在哪。要想往高级工程师进阶，就得去理解MySQL的内部原理，底层细节。但是我不想这么早就扎入MySQL的源码中。对于我这个初入茅庐的菜鸟程序员，还是在以后的开发中，根据实际问题再去深入研究。这篇笔记主要记录我对MySQL的基础架构的理解，好吧，下面开始。</p><a id="more"></a>
-<p><img src="//yangfubo.github.io/2019/09/25/MySQL基础架构之一条select语句是如何执行的/MySQL%E5%9F%BA%E7%A1%80%E6%9E%B6%E6%9E%84%E5%9B%BE.jpg" alt></p>
-<p>&emsp;直接贴上MySQL的组件图，那么我们就来讲讲这个图。</p>
-<h3 id="客户端"><a href="#客户端" class="headerlink" title="客户端"></a>客户端</h3><p>首先，客户端就是我们程序员主要工作的地方，你写的Java代码就会调用MySQL提供的Java客户端API。一般客户端开发框架会封装一个连接池，管理复用MySQL的连接。而MySQL可大致分为Server层和存储引擎层两部分。<br>假设我们执行这样一条SQL,<code>select * from t where id = 1;</code>来分析分析它的执行过程，以及各个组件都有什么作用。</p>
-<h3 id="1-连接器"><a href="#1-连接器" class="headerlink" title="1.连接器"></a>1.连接器</h3><ul>
-<li>连接管理，每个客户端连接在服务端都会对应与一个线程，连接器同样也是线程池，客户端连接断开了，不会关闭线程，而是等待处理下一个连接；</li>
-<li>权限验证，将其权限信息读入内存，验证账户和密码的正确性，下面的组件还会用到这部分权限信息。</li>
+        <p>&emsp;最近在学习消息中间件，最后选择了RocketMQ来学习和应用。因为RocketMQ作为阿里开源出来的消息中间件（支持国产），经受了双11和各种大促活动的考验，是一个高可用，可扩展的成熟MQ。另外一点是它是JAVA语言写的，我是Java程序员，如果需要修改源码，那么学习成本也低很多。<br>毕竟其他消息中间件大多都是其他语言写的，不好研究源码。事实证明，即使是我这样只有1年工作经验的菜鸟，也能看懂它的代码，从中学到点东西。<br>&emsp;在看了官方文档的Quick Start,几个example后，发现客户端API很简单。发布订阅模型和消息队列模型；普通消息，有序消息，事务消息；集群消费，广播消费；异步处理，系统解耦，流量削峰；producer同步/异步发送，broker同步或异步刷盘，master-slave复制等保障high-availible,<br>不管是producer,nameserver,broker还是consumer都可以水平扩容。以RocketMQ的源码来学习分布式集群、高可用、可扩展的中间件应该是不错的选择。如果我上面提到的这些概念不清楚的话，建议去看官方文档，以及RocketMQ3.+的相关文档；</p><a id="more"></a>
+<ul>
+<li>RocketMQ官方文档 <a href="http://rocketmq.apache.org/docs/quick-start/" target="_blank" rel="noopener">http://rocketmq.apache.org/docs/quick-start/</a></li>
+<li>RocketMQ3原理简介 <a href="http://gd-rus-public.cn-hangzhou.oss-pub.aliyun-inc.com/attachment/201604/08/20160408165024/RocketMQ_design.pdf" target="_blank" rel="noopener">http://gd-rus-public.cn-hangzhou.oss-pub.aliyun-inc.com/attachment/201604/08/20160408165024/RocketMQ_design.pdf</a></li>
+<li>RocketMQ3用户指南 <a href="http://gd-rus-public.cn-hangzhou.oss-pub.aliyun-inc.com/attachment/201604/08/20160408164726/RocketMQ_userguide.pdf" target="_blank" rel="noopener">http://gd-rus-public.cn-hangzhou.oss-pub.aliyun-inc.com/attachment/201604/08/20160408164726/RocketMQ_userguide.pdf</a></li>
 </ul>
-<p>&emsp;顺带一提查询缓存，根据SQL语句查询是否有缓存，有则直接返回数据。这样看似可以加速查询，但对于读写频繁的业务，你对表上任一行做了更新操作，都会使得该表的缓存失效，假如一条读完下条写，缓存失效，下次又读，又进缓存，这样根本没有提高效率。所以根据业务需求，判断是否需要开启缓存吧，通常建议不使用。</p>
-<h3 id="2-分析器"><a href="#2-分析器" class="headerlink" title="2.分析器"></a>2.分析器</h3><ul>
-<li>进行词法分析，语法分析得到语法树，验证语法是否正确，比如根据语法树判断关键字是否正确。<h3 id="3-预处理器"><a href="#3-预处理器" class="headerlink" title="3.预处理器"></a>3.预处理器</h3></li>
-<li>此部分根据语法树中解析出的表、列信息，结合前面的权限信息判断用户是否对该表或列具有读/写权限等；<h3 id="4-优化器"><a href="#4-优化器" class="headerlink" title="4.优化器"></a>4.优化器</h3></li>
-<li>主要负责优化SQL语句，包括重写查询、决定表的读取顺序，选择合适的索引（估计哪个索引执行快）等，据此生成最优的执行计划。对于上面那条SQL语句，会选择id主键索引。<h3 id="5-执行器"><a href="#5-执行器" class="headerlink" title="5.执行器"></a>5.执行器</h3></li>
-<li>根据执行计划给出的指令，调用存储引擎的API,进行计算等。那么这个例子就是调用查询id=1的存储引擎接口。<h3 id="6-存储引擎"><a href="#6-存储引擎" class="headerlink" title="6.存储引擎"></a>6.存储引擎</h3></li>
-<li>提供API,比如查询某个索引第一行的接口，查询某个索引条目（数据行）下一个条目的接口。这个例子就是遍历id主键索引树，返回给执行器id=1这一行。</li>
-<li>存储数据，在内存中提供Buffer Pool,读写磁盘</li>
+<p>&emsp;对于如何看源码，无非是将源码clone下来，查看源码中的单元测试，从单元测试入手，打断点，根据代码逻辑，画出类图，时序图，流程图等来帮助理解。不然看了等于没看。<br>刚开始看的时候不要过多陷入细节，能够明白主要的流程，主要的功能点在什么地方和有哪些设计上的亮点等。源码版本4.5.2。</p>
+<p>&emsp;查看client模块中DefaultMQProducerTest测试类，里面有很多测试方法,如下所示</p>
+<ul>
+<li>init()  </li>
+<li>terminate()  </li>
+<li>testSendMessage_ZeroMessage()  </li>
+<li>testSendMessage_NoNameSrv()  </li>
+<li>testSendMessage_NoRoute()  </li>
+<li>testSendMessageSync_Success()  </li>
+<li>testSendMessageSync_WithBodyCompressed()  </li>
+<li>testSendMessageAsync_Success()  </li>
+<li>testSendMessageAsync()  </li>
+<li>testSendMessageAsync_BodyCompressed()  </li>
+<li>testSendMessageSync_SuccessWithHook()  </li>
+<li>testSetCallbackExecutor()  </li>
 </ul>
-<p>&emsp;返回结果集，执行器查出数据后，数据由连接器中的当前线程传送回数据，并不是所有数据都查出来了一次性返回给客户端，而是查出数据就可以往连接里传送数据了。</p>
-<p>参考资料：  </p>
-<ol>
-<li>《高性能MySQL 第三版》章节1.1、6.4  </li>
-<li>极客时间《MySQL实战45讲》–丁奇大佬，第一章《基础架构：一条SQL查询语句是如何执行的？》</li>
-</ol>
+<p>&emsp;init()方法是其他测试的方法基础，要先初始化一个producer出来，所以，就先分析Producer的参数设置，和start()过程。通过这个过程，来了解客户端各个类之间的关系以及启动了什么服务。主要的类关系如下图所示：</p>
+<p><img src="//yangfubo.github.io/2019/09/29/RocketMQ源码分析之启动Producer/Producer%E5%AE%9E%E7%8E%B0%E7%B1%BB%E5%9B%BE%E5%85%B3%E7%B3%BB.png" alt></p>
+<p>&emsp;首先查看DefaultMQProducer类，它实现了MQProducer用户API接口，继承了ClientConfig客户端公共参数配置类，除了继承公共配置，DefaultMQProducer还自己定义了其他配置如</p>
+<ul>
+<li>producerGroup 生产者组名称  </li>
+<li>defaultTopicQueueNums 默认的主题有多少个队列  </li>
+<li>sendMsgTimeout 发送消息超时  </li>
+<li>compressMsgBodyOverHowmuch 消息压缩  </li>
+<li>retryTimesWhenSendFailed 同步发送失败重试次数  </li>
+<li>retryTimesWhenSendAsyncFailed 异步发送失败重试次数  </li>
+<li>retryAnotherBrokerWhenNotStoreOK broker存储失败尝试另一个broker  </li>
+<li>maxMessageSize 最大消息大小  </li>
+</ul>
+<p>&amp;emsp这里的DefaultMQProducer应该是门面模式的思想，向用户 隐藏具体实现的细节，让用户看到的就是一个简单的接口，你会看到DefaultMQProducer里就是调用相应DefaultMQProducerImpl的方法，<br>，后面各个组件的配合实现都隐藏掉。就像你去咖啡店点一杯咖啡，你只需要告诉营业员要一杯咖啡，咖啡的研磨，冲泡，然后再服务员端上来的过程你都不需要了解并参与。但是DefaultMQProducer继承公共配置类并且自身也加了其他配置参数这样的实现方式我感觉不是很优雅，应该将配置类完全抽离出去，由一个类来统一管理。像Mybatis的Configuration和Spring的Environment等。在后面的DefaultMQProducerImpl中又引用了defaultMQProducer，但实际上大多数只是把它当做获取配置的接口而已，所以这样会有点让人困惑。</p>
+<p>接下来看DefaultMQProducerImpl类，它是客户端Producer主要的实现逻辑,debug到start()方法，看到里面是根据状态，执行不同的代码。我们现在处于CREATE_JUST状态，在这里面初始化mQClientFactory（MQClientInstance类实例），通过MQClinetManager的单例中的factoryTable（ConcurrentMap&lt;String/* clientId <em>/, MQClientInstance&gt;）来管理MQClientInstance，这样就不会重复创建相同的MQClientInstance，有点类似于Spring的BeanFactory。clientId = IP@instanceName,所以这里只要定义不同的instanceName就可以在一个Java进程中开启多个MQClientInstance。创建完MQClientInstance后，调用MQClinetInstance.registerProducer（producerGourp,producerImpl）注册producerImpl,进入这个方法，原来MQClientInstance使用ConcurrentMap&lt;String/</em> group */, MQProducerInner&gt;来管理DefaultMQProducerImpl(实现了MQProducerInner),大概浏览其他属性，发现还管理了consumer和adminExt。所以这时就可以明白MQClientInstance是客户端的真正实现，管理producer,consumer,各种service。注册完后，继续向下debug,到mQClientFactory.start(),这里面的初始化，也是不同状态的switch。这个方法里初始化了很多服务，如mQClientAPIImpl（由netty实现，远程命令实现），startScheduledTask（）启动各种定时任务（如定时从nameServer获取topic路由，与broker的心跳等），pullMessageService，rebalanceService等服务。到了这里整个start过程就基本结束了，producer就开始运行了。看文字描述可能有点混乱，还是画个时序图吧，如下图所示，可能图画的也不标准….</p>
+<p><img src="//yangfubo.github.io/2019/09/29/RocketMQ源码分析之启动Producer/Producer%E5%88%9D%E5%A7%8B%E5%8C%96%E8%BF%87%E7%A8%8B.png" alt></p>
+<p>&emsp;总之呢，看完整个初始化过程，你会对客户端的类关系有个大概了解，有些什么服务，看到最后是由NettyRemotingClient实现的与服务器的通信，看来又要去了解一个新的开源框架了Netty了。当然具体每个服务是怎么实现的，以后又需要再继续研究吧。</p>
 
     </div>
 
@@ -377,7 +394,7 @@
           
           <div class="post-tags">
             
-              <a href="/tags/MySQL基础架构-select语句/" rel="tag"># MySQL基础架构 select语句</a>
+              <a href="/tags/消息中间件-RocketMQ-Producer/" rel="tag"># 消息中间件 RocketMQ Producer</a>
             
           </div>
         
@@ -387,8 +404,8 @@
           <div class="post-nav">
             <div class="post-nav-next post-nav-item">
               
-                <a href="/2019/09/25/class文件常量池，运行时常量池，字符串常量池到底都是啥？/" rel="next" title="class文件常量池，运行时常量池，字符串常量池到底都是啥？">
-                  <i class="fa fa-chevron-left"></i> class文件常量池，运行时常量池，字符串常量池到底都是啥？
+                <a href="/2019/09/25/MySQL基础架构之一条select语句是如何执行的/" rel="next" title="MySQL基础架构之一条select语句是如何执行的">
+                  <i class="fa fa-chevron-left"></i> MySQL基础架构之一条select语句是如何执行的
                 </a>
               
             </div>
@@ -396,10 +413,6 @@
             <span class="post-nav-divider"></span>
 
             <div class="post-nav-prev post-nav-item">
-              
-                <a href="/2019/09/29/RocketMQ源码分析之启动Producer/" rel="prev" title="RocketMQ源码分析之启动Producer">
-                  RocketMQ源码分析之启动Producer <i class="fa fa-chevron-right"></i>
-                </a>
               
             </div>
           </div>
@@ -448,8 +461,6 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#客户端"><span class="nav-number">1.</span> <span class="nav-text">客户端</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-连接器"><span class="nav-number">2.</span> <span class="nav-text">1.连接器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-分析器"><span class="nav-number">3.</span> <span class="nav-text">2.分析器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-预处理器"><span class="nav-number">4.</span> <span class="nav-text">3.预处理器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-优化器"><span class="nav-number">5.</span> <span class="nav-text">4.优化器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-执行器"><span class="nav-number">6.</span> <span class="nav-text">5.执行器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-存储引擎"><span class="nav-number">7.</span> <span class="nav-text">6.存储引擎</span></a></li></ol></div>
-        
       </div>
       <!--/noindex-->
 
