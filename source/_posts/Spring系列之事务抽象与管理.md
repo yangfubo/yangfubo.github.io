@@ -29,8 +29,8 @@ tags: spring事务
 ## 事务隔离级别
 
 * 读未提交 read uncommited
-* 读已提交 read commited
-* 可重复读 repeatable read
+* 读已提交 read commited 简称RC
+* 可重复读 repeatable read 简称RR
 * 序列化 serializable
 
 **标准SQL的事务隔离级别**
@@ -238,7 +238,7 @@ DefaultTransactionStatus的属性：
 
 ## 声明式事务
 
-  Spring提供了两种事务使用方式，编程式事务和声明式事务，一般我们使用基于注解的AOP实现---声明式事务，即@Transactional注解的方法或类会被代理。AOP与业务代码无侵入，只需要关心业务实现逻辑上，不用咱们手动开始，回滚事务。下面将进行详细的原理源码分析，贴上来的代码是我选择重要逻辑，精简的，带注释说明的，
+  Spring提供了两种事务使用方式，编程式事务和声明式事务，一般我们使用基于注解的AOP实现---声明式事务，即@Transactional注解的方法或类会被代理。AOP与业务代码无侵入，只需要关心业务实现逻辑上，不用咱们手动开始，回滚事务。下面将进行详细的原理源码分析，贴上来的代码是我选择重要逻辑，精简的，并加上中文注释说明。
 
 ## TransactionInterceptor源码分析
 
@@ -333,7 +333,7 @@ TransactionIntercepter事务拦截，继承了TransactionAspectSupport,就是一
 ```
 
 	public final TransactionStatus getTransaction(@Nullable TransactionDefinition definition) throws TransactionException {
-		// 获取事务，有子类实现，模板方法
+		// 获取事务，由子类实现，模板方法
 		Object transaction = doGetTransaction();
 
 		// 如果已经存在事务
@@ -397,14 +397,14 @@ TransactionIntercepter事务拦截，继承了TransactionAspectSupport,就是一
 
 ```
 
-	protected Object invokeWithinTransaction(...) throws Throwable {
+	protected Object invokeWithinTransaction(method,targetClass,invocation) throws Throwable {
 
 		// 获取事务定义，事务管理器tm
 		// 创建事务
 		createTransactionIfNecessary;
 		try{
 			// 调用目标方法
-			retVal = invoke;
+			retVal = invocation.proceed;
 		}catch(ex){
 			// 方法内根据配置的回滚异常决定是提交还是回滚
 			completeTransactionAfterThrowing(txInfo, ex);
@@ -426,11 +426,7 @@ TransactionIntercepter事务拦截，继承了TransactionAspectSupport,就是一
 ```
 
 	public final void commit(TransactionStatus status) throws TransactionException {
-		if (status.isCompleted()) {
-			throw new IllegalTransactionStateException(
-					"Transaction is already completed - do not call commit or rollback more than once per transaction");
-		}
-
+		
 		DefaultTransactionStatus defStatus = (DefaultTransactionStatus) status;
 		if (defStatus.isLocalRollbackOnly()) {
 			if (defStatus.isDebug()) {
@@ -534,7 +530,7 @@ TransactionIntercepter事务拦截，继承了TransactionAspectSupport,就是一
 			else {
 				// We don't roll back on this exception.
 				// Will still roll back if TransactionStatus.isRollbackOnly() is true.
-				// 在设置了rollbackOnly还是要回滚
+				// 如果里面检查到设置了rollbackOnly还是要回滚
 				try {
 					txInfo.getTransactionManager().commit(txInfo.getTransactionStatus());
 				}
@@ -597,7 +593,7 @@ TransactionIntercepter事务拦截，继承了TransactionAspectSupport,就是一
 			triggerAfterCompletion(status, TransactionSynchronization.STATUS_ROLLED_BACK);
 
 			// Raise UnexpectedRollbackException if we had a global rollback-only marker
-			// unexpected传入为true,外层事务在提交时发现全局回滚标记为true则调用processRollback(stauts,true),其他情况传入的都是false
+			// unexpected传入为true,外层事务在提交时commitTransactionAfterReturning()发现全局回滚标记为true则调用processRollback(stauts,true),其他情况传入的都是false
 			if (unexpectedRollback) {
 				throw new UnexpectedRollbackException(
 						"Transaction rolled back because it has been marked as rollback-only");
@@ -611,77 +607,120 @@ TransactionIntercepter事务拦截，继承了TransactionAspectSupport,就是一
 
 ```
 
+* **事务清理动作**
+
+ 1.设置事务完成标志  
+ 2.清理事务同步资源3  
+ 3.释放事务，连接资源   
+ 4.恢复挂起事务  
+
+```
+
+	private void cleanupAfterCompletion(DefaultTransactionStatus status) {
+		// 1.设置事务完成标志
+		status.setCompleted();
+		// 2.清理事务同步资源
+		if (status.isNewSynchronization()) {
+			TransactionSynchronizationManager.clear();
+		}
+		// 3.清理事务，连接资源
+		if (status.isNewTransaction()) {
+			doCleanupAfterCompletion(status.getTransaction());
+		}
+		// 4.回复挂起事务
+		if (status.getSuspendedResources() != null) {
+			if (status.isDebug()) {
+				logger.debug("Resuming suspended transaction after completion of inner transaction");
+			}
+			resume(status.getTransaction(), (SuspendedResourcesHolder) status.getSuspendedResources());
+		}
+	}
+
+
+```
+
 ## 示例代码分析
 
-下面的代码默认都采用required传播行为，
+下面的代码默认都采用required传播行为，捕获Exception异常回滚
+
+示例1：捕获内层异常并忽略  
+ 
+不建议这种catch内层事务异常，而不手动回滚或继续抛异常的，这样别人调你接口根本不知道是什么出错了，最好抛出一个说明原因的异常。
 
 ```
 
 	// 不建议这种catch内层事务异常，而不手动回滚或继续抛异常的，这样别人调你接口根本不知道是什么出错了，最好抛出一个说明原因的异常。
-	// 执行前（"zhangsan",18）
-	@Transactional(rollbackFor = Exception.class)
-    public int innerTxExIgnore(String username, int age) throws Exception {
+    // 执行前（"zhangsan",18）
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int innerTxWithExButIgnore(String username, int age) throws Exception {
         userDao.updateAge(username, age);
-		// ("zhangsan",20)
+        // ("zhangsan",20)
         try {
-			// dao方法内会抛出异常
             userDao.updateAgeEx(username,age+1);
+            // ("zhangsan",21)
         } catch (Exception e) {
-            log.info("innerTxExIgnore.忽略异常");
+            log.info("innerTxWithExButIgnore.忽略异常");
         }
-		// ("zhangsan",20)
+        // ("zhangsan",21)
         userDao.updateName(username, "test");
-		// ("zhangsan","test",20)
-        log.info("innerTxExIgnore.ignore更新后：{}",userDao.get(username));
-        log.info("innerTxExIgnore.异常后仍执行其他事务");
-		// 最终外层事务提交时，会因为全局rollbackOnly回滚所有sql并抛出异常marked as roll-back only
+        // ("zhangsan","test",21)
+        log.info("innerTxWithExButIgnore.ignore更新后：{}",userDao.get(username));
+        log.info("innerTxWithExButIgnore.异常后仍执行其他事务");
+        // 最终外层事务提交时，会因为全局rollbackOnly回滚所有sql并抛出异常marked as roll-back only
         return 1;
     }
-
-	// 执行后（"zhangsan",18）
+    // 执行后（"zhangsan",18）
 
 ```
+
+示例2：捕获内层异常并手动回滚
 
 ```
 
 	// 内层事务异常被catch,手动设置回滚还算正确
-	// 执行前（"zhangsan",18）
-	@Transactional(rollbackFor = Exception.class)
-    public int innerTxExSetRoll(String username, int age) throws Exception {
+    // 执行前（"zhangsan",18）
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int innerTxWithExSetRoll(String username, int age) throws Exception {
         userDao.updateAge(username, age);
-		// ("zhangsan",20)
+        // ("zhangsan",20)
         try {
             userDao.updateAgeEx(username,age+1);
+            // ("zhangsan",21)
         } catch (Exception e) {
-            log.info("innerTxExSetRoll.手动设置rollbackOnly");
+            log.info("innerTxWithExSetRoll.手动设置rollbackOnly");
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
         }
-		// ("zhangsan",20)
+        // ("zhangsan",21)
         return 1;
     }
-	// 执行后("zhangsan",18)
+    // 执行后("zhangsan",18)
 
 ```
 
-
+示例3：捕获内层异常并处理后继续向上抛出此异常（或其他异常）
 ```
 
-	// 内层事务异常被catch,继续向上抛出此异常（或转换为其他异常）
-	// 最好这样做，这样后面的代码就不会再执行，执行了也要被回滚，除非后面的是新启一个事务（requires_new）
-	@Transactional(rollbackFor = Exception.class)
-    public int innerTxExSetRoll(String username, int age) throws Exception {
+	@Override
+    @Transactional(rollbackFor = Exception.class)
+    public int innerTxWithExThrowUp(String username, int age) throws Exception {
         userDao.updateAge(username, age);
+        // ("zhangsan",20)
         try {
             userDao.updateAgeEx(username,age+1);
+            // ("zhangsan",21)
         } catch (Exception e) {
-            // 异常处理后 继续向上抛出该异常
+            log.info("innerTxWithExThrowUp.继续向上抛出异常");
             throw e;
         }
+        // ("zhangsan",21)
         return 1;
     }
 
 ```
 
+示例4：内层事务方法直接调用（内层事务不起作用，因为执行的不是代理后的方法）  
 
 ```
 
@@ -691,14 +730,24 @@ TransactionIntercepter事务拦截，继承了TransactionAspectSupport,就是一
         throw new Exception();
     }
 
-	@Transactional(rollbackFor = Exception.class)
-	public void innerTxNotWork(String username, int age) throws Exception {
+	// 执行前("zhangsan",18)
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void innerTxNotWork(String username, int age) throws Exception {
         userDao.updateAge(username, age);
+        // ("zhangsan",20)
         // 因为是直接调用的目标方法，而不是代理后的，所以下面方法不是新事务
-        newTx(username);
-        //((UserService) (AopContext.currentProxy())).newTx(username);正确用法
-		// 或者将UserService注入 或者用spring工具类getBean(beanName)获取实例
+        newTxWithEx(username);
+        // ("zhangsan","test",20)
+        //((UserService) (AopContext.currentProxy())).newTxWithEx(username);正确用法
     }
+    // 执行后 ("zhangsan",18)
 
 
 ```
+
+## 总结
+
+到这里应该算是把Spring事务抽象及管理机制和源码实现分析的差不多了，事务隔离级别（主要读已提交和可重复读），事务传播行为（主要required,requires_new,nested,要分清他们的区别），主要涉及的类包括TransactionDefinition,TransactionStatus,PlatformTransactionManager和将三者封装的TransactionInfo以及线程隔离的事务同步信息管理器TransactionSynchronizationManager，手动回滚的TransactionAspectSupport，和基于注解@Transactional的声明式事务拦截器TransactionInterceptor  
+
+Spring这边的事务理解了，接下来就要去理解比如连接池DataSource，MyBatis的原理源码，再深层点，去理解MySQL的事务实现机制，MVCC，锁，索引等原理。将它们串起来理解，对CRUD的整体理解和深层理解都将是质的飞越，只有将基础打牢，上层建筑才能建设起来，排查问题，问题定位与性能优化等才能游刃有余，我相信随着开发年限，经验的增长，成为技术大牛指日可待。
