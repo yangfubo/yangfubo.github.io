@@ -68,7 +68,7 @@
 <meta property="og:image" content="http://yangfubo.github.io/2019/09/20/JVM垃圾回收/%E6%A0%87%E8%AE%B0-%E5%A4%8D%E5%88%B6%E7%AE%97%E6%B3%95.jpg">
 <meta property="og:image" content="http://yangfubo.github.io/2019/09/20/JVM垃圾回收/%E6%A0%87%E8%AE%B0-%E6%95%B4%E7%90%86%E7%AE%97%E6%B3%95.jpg">
 <meta property="og:image" content="http://yangfubo.github.io/2019/09/20/JVM垃圾回收/%E5%88%86%E4%BB%A3%E6%94%B6%E9%9B%86%E7%AE%97%E6%B3%95.jpg">
-<meta property="og:updated_time" content="2019-09-23T10:26:57.945Z">
+<meta property="og:updated_time" content="2019-11-27T07:22:24.170Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="JVM垃圾回收">
 <meta name="twitter:description" content="&amp;emsp;垃圾收集是C++与Java的一大不同点，C++中需要手动释放内存，编写析构函数。而JVM则由后台垃圾收集线程帮我们处理垃圾对象，减少了开发人员写代码忘记编写析构，或错误析构的可能。在JVM内存结构中已经大致了解过heap堆的分代。现在的垃圾收集器基本都采用分代收集算法。因为某论文中证明大多数对象是朝生夕死的，分代算法提高垃圾收集的效率。">
@@ -314,7 +314,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-09-23 18:26:57" itemprop="dateModified" datetime="2019-09-23T18:26:57+08:00">2019-09-23</time>
+                <time title="修改时间：2019-11-27 15:22:24" itemprop="dateModified" datetime="2019-11-27T15:22:24+08:00">2019-11-27</time>
               </span>
             
           
@@ -369,11 +369,8 @@
 <h4 id="标记-整理"><a href="#标记-整理" class="headerlink" title="标记-整理"></a>标记-整理</h4><p>&emsp;标记-整理（Mark-Compact）标记完成后，将可用内存依次移动到一起，最后清除掉剩余部分的内存，这样就形成了连续的内存，不存在内存碎片。虽然清除动作很高效，但是整理的过程效率不好，还要改变对象之间引用的地址关系。</p>
 <p><img src="//yangfubo.github.io/2019/09/20/JVM垃圾回收/%E6%A0%87%E8%AE%B0-%E6%95%B4%E7%90%86%E7%AE%97%E6%B3%95.jpg" alt></p>
 <center>标记整理算法</center>
-#### 分代收集算法
-&emsp;国外某某发布的一篇论文中证明大部分对象都是朝生夕死的，只有少部分的对象存活了下来。所以结合前面几种算法，将java堆划分为年轻代，老年代，年轻代又划分为Eden, from survivor(s0),to survivor(s1),默认比例是eden:s0:s1=8:1:1。通常在年轻代的eden区分配新对象，GC时，将eden区和from survivor中的存活对象采用复制算法复制到to survivor，然后交换s0,s1身份。如果from survivor有存活了好几代的对象，则将它晋升到老年代。如果eden + from survivor存活对象大小>to survivor大小，则有部分对象也会晋升。老年代因为是长期存活下来的对象，意味着它变动不大，当老年代因为晋升或者分配大对象而内存不够时便会发生GC,此时采用的算法一般是标记-清理或标记-整理。
-年轻代使用-Xmn128m(memory new)指定大小。老年代则是当前java堆大小减去Xmn,java堆由Xms(memory start)和Xmx(memory max)指定。
 
-
+<h4 id="分代收集算法"><a href="#分代收集算法" class="headerlink" title="分代收集算法"></a>分代收集算法</h4><p>&emsp;国外某某发布的一篇论文中证明大部分对象都是朝生夕死的，只有少部分的对象存活了下来。所以结合前面几种算法，将java堆划分为年轻代，老年代，年轻代又划分为Eden, from survivor(s0),to survivor(s1),默认比例是eden:s0:s1=8:1:1。通常在年轻代的eden区分配新对象，GC时，将eden区和from survivor中的存活对象采用复制算法复制到to survivor，然后交换s0,s1身份。如果from survivor有存活了好几代的对象，则将它晋升到老年代。如果eden + from survivor存活对象大小&gt;to survivor大小，则有部分对象也会晋升。老年代因为是长期存活下来的对象，意味着它变动不大，当老年代因为晋升或者分配大对象而内存不够时便会发生GC,此时采用的算法一般是标记-清理或标记-整理。<br>年轻代使用-Xmn128m(memory new)指定大小。老年代则是当前java堆大小减去Xmn,java堆由Xms(memory start)和Xmx(memory max)指定。</p>
 <p><img src="//yangfubo.github.io/2019/09/20/JVM垃圾回收/%E5%88%86%E4%BB%A3%E6%94%B6%E9%9B%86%E7%AE%97%E6%B3%95.jpg" alt></p>
 <center>分代收集算法</center>
 
@@ -385,10 +382,20 @@
 <p>Parallel Scavenge（新生代、多线程并行、控制吞吐量、自适应分区比例）</p>
 <p>CMS(Concurrent Mark Sweep、老年代、多线程、并发)</p>
 <p>G1（Garbage-First，更小分区，新生和老年都收集，多线程，并行）</p>
-<h3 id="内存分配与回收策略"><a href="#内存分配与回收策略" class="headerlink" title="内存分配与回收策略"></a>内存分配与回收策略</h3><h4 id="新对象优先在年轻代Eden区分配"><a href="#新对象优先在年轻代Eden区分配" class="headerlink" title="新对象优先在年轻代Eden区分配"></a>新对象优先在年轻代Eden区分配</h4><p>&emsp;分配时有指针加法和空闲列表两种方式。并且每个线程都有自己的TLAB。</p>
-<h4 id="大对象直接进老年代"><a href="#大对象直接进老年代" class="headerlink" title="大对象直接进老年代"></a>大对象直接进老年代</h4><h4 id="长期存活对象进老年代"><a href="#长期存活对象进老年代" class="headerlink" title="长期存活对象进老年代"></a>长期存活对象进老年代</h4><p>&emsp;达到-XX:MaxTenuringThrehold年龄的survivor中的对象晋升到老年代</p>
-<h4 id="动态对象年龄判定"><a href="#动态对象年龄判定" class="headerlink" title="动态对象年龄判定"></a>动态对象年龄判定</h4><p>当survivor区中存活对象相同年龄的所有对象大小大于survivor的一半，那么年龄&gt;=该年龄的对象就可以直接进入老年代，无需等到JVM选项-XX:MaxTenuringThrehold要求的年龄</p>
-<h4 id="空间分配担保"><a href="#空间分配担保" class="headerlink" title="空间分配担保"></a>空间分配担保</h4><p>只要老年代剩余连续可用空间大于当前新生代对象总和或历次从新生代晋升到老年代的平均晋升大小，则进行minorGC,如果失败，否则进行Full GC</p>
+<h3 id="内存分配与回收策略"><a href="#内存分配与回收策略" class="headerlink" title="内存分配与回收策略"></a>内存分配与回收策略</h3><ul>
+<li>新对象优先在年轻代Eden区分配<br>&emsp;分配时有指针加法和空闲列表两种方式。并且每个线程都有自己的TLAB。</li>
+<li>大对象直接进老年代</li>
+<li>长期存活对象进老年代</li>
+</ul>
+<p>&emsp;达到-XX:MaxTenuringThrehold年龄的survivor中的对象晋升到老年代</p>
+<ul>
+<li>动态对象年龄判定  </li>
+</ul>
+<p>当survivor区中存活对象相同年龄的所有对象大小大于survivor的一半，那么年龄&gt;=该年龄的对象就可以直接进入老年代，无需等到JVM选项-XX:MaxTenuringThrehold要求的年龄</p>
+<ul>
+<li>空间分配担保  </li>
+</ul>
+<p>只要老年代剩余连续可用空间大于当前新生代对象总和或历次从新生代晋升到老年代的平均晋升大小，则进行minorGC,如果失败，否则进行Full GC</p>
 <h3 id="GC日志"><a href="#GC日志" class="headerlink" title="GC日志"></a>GC日志</h3>
     </div>
 
@@ -475,7 +482,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#标记垃圾对象"><span class="nav-number">1.</span> <span class="nav-text">标记垃圾对象</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#引用计数法"><span class="nav-number">1.1.</span> <span class="nav-text">引用计数法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#可达性分析-GC-Roots"><span class="nav-number">1.2.</span> <span class="nav-text">可达性分析-GC Roots</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Stop-The-World"><span class="nav-number">2.</span> <span class="nav-text">Stop-The-World</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#安全点与安全区"><span class="nav-number">2.1.</span> <span class="nav-text">安全点与安全区</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#垃圾收集算法"><span class="nav-number">3.</span> <span class="nav-text">垃圾收集算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#标记-清除"><span class="nav-number">3.1.</span> <span class="nav-text">标记-清除</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#复制"><span class="nav-number">3.2.</span> <span class="nav-text">复制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#标记-整理"><span class="nav-number">3.3.</span> <span class="nav-text">标记-整理</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#垃圾收集器"><span class="nav-number">4.</span> <span class="nav-text">垃圾收集器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内存分配与回收策略"><span class="nav-number">5.</span> <span class="nav-text">内存分配与回收策略</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#新对象优先在年轻代Eden区分配"><span class="nav-number">5.1.</span> <span class="nav-text">新对象优先在年轻代Eden区分配</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#大对象直接进老年代"><span class="nav-number">5.2.</span> <span class="nav-text">大对象直接进老年代</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#长期存活对象进老年代"><span class="nav-number">5.3.</span> <span class="nav-text">长期存活对象进老年代</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#动态对象年龄判定"><span class="nav-number">5.4.</span> <span class="nav-text">动态对象年龄判定</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#空间分配担保"><span class="nav-number">5.5.</span> <span class="nav-text">空间分配担保</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GC日志"><span class="nav-number">6.</span> <span class="nav-text">GC日志</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#标记垃圾对象"><span class="nav-number">1.</span> <span class="nav-text">标记垃圾对象</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#引用计数法"><span class="nav-number">1.1.</span> <span class="nav-text">引用计数法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#可达性分析-GC-Roots"><span class="nav-number">1.2.</span> <span class="nav-text">可达性分析-GC Roots</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Stop-The-World"><span class="nav-number">2.</span> <span class="nav-text">Stop-The-World</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#安全点与安全区"><span class="nav-number">2.1.</span> <span class="nav-text">安全点与安全区</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#垃圾收集算法"><span class="nav-number">3.</span> <span class="nav-text">垃圾收集算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#标记-清除"><span class="nav-number">3.1.</span> <span class="nav-text">标记-清除</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#复制"><span class="nav-number">3.2.</span> <span class="nav-text">复制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#标记-整理"><span class="nav-number">3.3.</span> <span class="nav-text">标记-整理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#分代收集算法"><span class="nav-number">3.4.</span> <span class="nav-text">分代收集算法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#垃圾收集器"><span class="nav-number">4.</span> <span class="nav-text">垃圾收集器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内存分配与回收策略"><span class="nav-number">5.</span> <span class="nav-text">内存分配与回收策略</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GC日志"><span class="nav-number">6.</span> <span class="nav-text">GC日志</span></a></li></ol></div>
         
       </div>
       <!--/noindex-->
