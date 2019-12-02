@@ -75,6 +75,10 @@ tags: spring事务
 
   当执行出错，或业务逻辑出错，事务需要回滚。此处可以去了解undo log回滚日志。
 
+* 保存点 savepoint
+
+  声明：saveponit name;      回滚：rollback to name;    释放:release savepoint name;
+
 ## Spring事务抽象 
 
 首先，我们来看下它主要的接口和类,主要有
@@ -85,7 +89,7 @@ tags: spring事务
 * **TransactionDefinition 事务定义**  
 
 
-```
+```java
 
 	public interface TransactionDefinition {
 	
@@ -148,7 +152,8 @@ tags: spring事务
 
 DefaultTransactionDefinition的属性：传播行为，隔离级别，超时回滚，只读事务，事务名称  
 
-```
+```java 
+
 	// 传播行为
 	private int propagationBehavior = PROPAGATION_REQUIRED;
 	// 隔离级别
@@ -170,7 +175,8 @@ DefaultTransactionDefinition的属性：传播行为，隔离级别，超时回�
 事务状态维护这一个事务开始到结束的一些状态，在默认的实现类DefaultTransactionStatus中包含比如事务对象（包含连接），是否已完成，回滚标志，保存点，挂起事务等信息。
 
 DefaultTransactionStatus的属性：  
-```
+
+```java
 
 	// 事务连接器, 比如 DataSourceTransactionManager 中的 DataSourceTransactionObject
 	private final Object transaction;
@@ -195,7 +201,7 @@ DefaultTransactionStatus的属性：
 
 * **PlatformTransactionManager 平台事务管理器**
 
-```
+```java
 
 	public interface PlatformTransactionManager {
 		// 获取事务
@@ -212,7 +218,7 @@ DefaultTransactionStatus的属性：
 
 * TransactionInfo 事务信息封装
 
-```
+```java
 
 	protected final class TransactionInfo {
 	
@@ -238,7 +244,7 @@ DefaultTransactionStatus的属性：
 
 ## 声明式事务
 
-  Spring提供了两种事务使用方式，编程式事务和声明式事务，一般我们使用基于注解的AOP实现---声明式事务，即@Transactional注解的方法或类会被代理。AOP与业务代码无侵入，只需要关心业务实现逻辑上，不用咱们手动开始，回滚事务。下面将进行详细的原理源码分析，贴上来的代码是我选择重要逻辑，精简的，并加上中文注释说明。
+  Spring提供了两种事务使用方式，编程式事务和声明式事务，一般我们使用基于注解的AOP实现声明式事务，即@Transactional注解的方法或类会增加事务代理。AOP与业务代码无侵入，只需要关心业务实现逻辑上，不用咱们手动开始，回滚事务。下面将进行详细的原理源码分析，贴上来的代码是我选择重要逻辑，精简的，并加上中文注释说明。
 
 ## TransactionInterceptor源码分析
 
@@ -246,7 +252,9 @@ TransactionIntercepter事务拦截，继承了TransactionAspectSupport,就是一
 
 ### invokeWithinTransaction方法
 
-获取事务定义属性txAttr，事务管理器tm,创建事务，执行目标方法，如果抛出异常则进行异常处理（回滚或提交），否则进行提交处理（提交或回滚）
+获取事务定义属性txAttr，事务管理器tm,创建事务，执行目标方法，如果抛出异常则进行异常处理（回滚或提交），否则进行提交处理（提交或回滚），整个流程如下所示：
+
+![](Spring系列之事务抽象与管理/事务管理AOP过程.jpg)
 
 ```java
 	
@@ -306,9 +314,11 @@ TransactionIntercepter事务拦截，继承了TransactionAspectSupport,就是一
 
 ### 创建事务createTransactionIfNecessary
 
-获取连接，并将事务定义和状态封装到TransactionInfo，通过TransactionAspectSupport绑定到线程
+获取连接，并将事务定义和状态封装到TransactionInfo，通过TransactionAspectSupport绑定到线程,整个过程如下所示：
 
-```
+![](Spring系列之事务抽象与管理/获取事务.jpg)
+
+```java
 
 	protected TransactionInfo createTransactionIfNecessary(@Nullable PlatformTransactionManager tm,
 			@Nullable TransactionAttribute txAttr, final String joinpointIdentification) {
@@ -330,7 +340,7 @@ TransactionIntercepter事务拦截，继承了TransactionAspectSupport,就是一
 
 主要包含获取连接，将连接和其他事务信息通过事务同步器TransactionSynchronizationManager绑定到线程
 
-```
+```java
 
 	public final TransactionStatus getTransaction(@Nullable TransactionDefinition definition) throws TransactionException {
 		// 获取事务，由子类实现，模板方法
@@ -388,14 +398,12 @@ TransactionIntercepter事务拦截，继承了TransactionAspectSupport,就是一
 
 ### 提交或回滚
 
-提交回滚的逻辑比较复杂，事务有嵌套关系，整个过程事务状态的转变有点复杂，比较难debug，我尽可能得按自己的理解画出了事务的过程，可能有错误欢迎指正，
-在后续的学习，应用过程中再继续修订。注：内外层事务使用的是required传播行为（有事务则用外层事务，无事务则新建）。
+提交回滚的逻辑比较复杂，事务有嵌套关系，整个过程事务状态的转变有点复杂，比较难debug，我尽可能得按自己的理解画出了事务的过程，可能有错误欢迎指正，在后续的学习，应用过程中再继续修订。注：内外层事务使用的是required传播行为（有事务则用外层事务，无事务则新建）。
 
-![](Spring系列之事务抽象与管理/事务管理AOP过程.jpg)
 
 再回忆下事务处理的一个大概流程，如下伪代码：
 
-```
+```java
 
 	protected Object invokeWithinTransaction(method,targetClass,invocation) throws Throwable {
 
@@ -417,13 +425,13 @@ TransactionIntercepter事务拦截，继承了TransactionAspectSupport,就是一
 
 ```
 
-提交或回滚代码中一般都是commit->processCommit-doCommit,rollback->processRollback->doRollback
+提交或回滚代码中一般都是tm.commit->processCommit-doCommit,tm.rollback->processRollback->doRollback
 
 * **无异常，事务提交**
 
 
 
-```
+```java
 
 	public final void commit(TransactionStatus status) throws TransactionException {
 		
@@ -515,7 +523,7 @@ TransactionIntercepter事务拦截，继承了TransactionAspectSupport,就是一
 
 发生异常情况下，如果是我们配置的异常，则回滚处理，否则调用提交处理。处理回滚如果是外层事务，则真正回滚，如果是内层事务，则是设置rollbackOnly
 
-```
+```java
 
 	protected void completeTransactionAfterThrowing(@Nullable TransactionInfo txInfo, Throwable ex) {
 		if (txInfo != null && txInfo.getTransactionStatus() != null) {
@@ -607,14 +615,14 @@ TransactionIntercepter事务拦截，继承了TransactionAspectSupport,就是一
 
 ```
 
-* **事务清理动作**
+### 事务清理动作
 
  1.设置事务完成标志  
- 2.清理事务同步资源3  
+ 2.清理事务同步资源    
  3.释放事务，连接资源   
  4.恢复挂起事务  
 
-```
+```java
 
 	private void cleanupAfterCompletion(DefaultTransactionStatus status) {
 		// 1.设置事务完成标志
@@ -627,7 +635,7 @@ TransactionIntercepter事务拦截，继承了TransactionAspectSupport,就是一
 		if (status.isNewTransaction()) {
 			doCleanupAfterCompletion(status.getTransaction());
 		}
-		// 4.回复挂起事务
+		// 4.恢复挂起事务
 		if (status.getSuspendedResources() != null) {
 			if (status.isDebug()) {
 				logger.debug("Resuming suspended transaction after completion of inner transaction");
@@ -647,7 +655,7 @@ TransactionIntercepter事务拦截，继承了TransactionAspectSupport,就是一
  
 不建议这种catch内层事务异常，而不手动回滚或继续抛异常的，这样别人调你接口根本不知道是什么出错了，最好抛出一个说明原因的异常。
 
-```
+```java
 
 	// 不建议这种catch内层事务异常，而不手动回滚或继续抛异常的，这样别人调你接口根本不知道是什么出错了，最好抛出一个说明原因的异常。
     // 执行前（"zhangsan",18）
@@ -676,7 +684,7 @@ TransactionIntercepter事务拦截，继承了TransactionAspectSupport,就是一
 
 示例2：捕获内层异常并手动回滚
 
-```
+```java
 
 	// 内层事务异常被catch,手动设置回滚还算正确
     // 执行前（"zhangsan",18）
@@ -700,7 +708,8 @@ TransactionIntercepter事务拦截，继承了TransactionAspectSupport,就是一
 ```
 
 示例3：捕获内层异常并处理后继续向上抛出此异常（或其他异常）
-```
+
+```java
 
 	@Override
     @Transactional(rollbackFor = Exception.class)
@@ -714,15 +723,16 @@ TransactionIntercepter事务拦截，继承了TransactionAspectSupport,就是一
             log.info("innerTxWithExThrowUp.继续向上抛出异常");
             throw e;
         }
-        // ("zhangsan",21)
+        
         return 1;
     }
+	// ("zhangsan",18)
 
 ```
 
 示例4：内层事务方法直接调用（内层事务不起作用，因为执行的不是代理后的方法）  
 
-```
+```java
 
 	@Transactional(propagation = Propagation.REQUIRES_NEW,rollbackFor = Exception.class)
     public void newTx(String username) throws Exception {
@@ -750,4 +760,4 @@ TransactionIntercepter事务拦截，继承了TransactionAspectSupport,就是一
 
 到这里应该算是把Spring事务抽象及管理机制和源码实现分析的差不多了，事务隔离级别（主要读已提交和可重复读），事务传播行为（主要required,requires_new,nested,要分清他们的区别），主要涉及的类包括TransactionDefinition,TransactionStatus,PlatformTransactionManager和将三者封装的TransactionInfo以及线程隔离的事务同步信息管理器TransactionSynchronizationManager，手动回滚的TransactionAspectSupport，和基于注解@Transactional的声明式事务拦截器TransactionInterceptor  
 
-Spring这边的事务理解了，接下来就要去理解比如连接池DataSource，MyBatis的原理源码，再深层点，去理解MySQL的事务实现机制，MVCC，锁，索引等原理。将它们串起来理解，对CRUD的整体理解和深层理解都将是质的飞越，只有将基础打牢，上层建筑才能建设起来，排查问题，问题定位与性能优化等才能游刃有余，我相信随着开发年限，经验的增长，成为技术大牛指日可待。
+Spring这边的事务理解了，接下来就要去理解比如连接池DataSource，MyBatis的原理源码，再深层点，去理解MySQL的事务实现机制，MVCC，锁，索引等原理。将它们串起来理解，对CRUD的整体理解和深层理解都将是质的飞越，只有将基础打牢，上层建筑才能建设起来，排查问题，问题定位与性能优化等才能游刃有余，我相信随着开发年限，经验的增长，成为技术大牛没有问题。

@@ -57,6 +57,7 @@ tags: JVM垃圾回收
 
 ![](JVM垃圾回收/标记-整理算法.jpg)
 <center>标记整理算法</center>
+  
 #### 分代收集算法
 &emsp;国外某某发布的一篇论文中证明大部分对象都是朝生夕死的，只有少部分的对象存活了下来。所以结合前面几种算法，将java堆划分为年轻代，老年代，年轻代又划分为Eden, from survivor(s0),to survivor(s1),默认比例是eden:s0:s1=8:1:1。通常在年轻代的eden区分配新对象，GC时，将eden区和from survivor中的存活对象采用复制算法复制到to survivor，然后交换s0,s1身份。如果from survivor有存活了好几代的对象，则将它晋升到老年代。如果eden + from survivor存活对象大小>to survivor大小，则有部分对象也会晋升。老年代因为是长期存活下来的对象，意味着它变动不大，当老年代因为晋升或者分配大对象而内存不够时便会发生GC,此时采用的算法一般是标记-清理或标记-整理。
 年轻代使用-Xmn128m(memory new)指定大小。老年代则是当前java堆大小减去Xmn,java堆由Xms(memory start)和Xmx(memory max)指定。
@@ -84,18 +85,18 @@ CMS(Concurrent Mark Sweep、老年代、多线程、并发)
 G1（Garbage-First，更小分区，新生和老年都收集，多线程，并行）
 
 ### 内存分配与回收策略
-#### 新对象优先在年轻代Eden区分配
+* 新对象优先在年轻代Eden区分配
 &emsp;分配时有指针加法和空闲列表两种方式。并且每个线程都有自己的TLAB。
-#### 大对象直接进老年代
-#### 长期存活对象进老年代
+* 大对象直接进老年代
+* 长期存活对象进老年代
 
 &emsp;达到-XX:MaxTenuringThrehold年龄的survivor中的对象晋升到老年代
 
-#### 动态对象年龄判定  
+* 动态对象年龄判定  
 
 当survivor区中存活对象相同年龄的所有对象大小大于survivor的一半，那么年龄>=该年龄的对象就可以直接进入老年代，无需等到JVM选项-XX:MaxTenuringThrehold要求的年龄
 
-#### 空间分配担保  
+* 空间分配担保  
 
 只要老年代剩余连续可用空间大于当前新生代对象总和或历次从新生代晋升到老年代的平均晋升大小，则进行minorGC,如果失败，否则进行Full GC
 
